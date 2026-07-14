@@ -10,6 +10,8 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 | `karpathy-llm-wiki` | Build and maintain a source-grounded Markdown/Obsidian LLM wiki. |
 | `home-assistant-control` | Safely operate a configured Home Assistant integration. |
 | `local-network-scan` | Perform read-only LAN inventory and camera/NVR discovery. |
+| `multica-idea-triage` | Turn approved ideas into minimal, revenue-focused Multica work structures. |
+| `multica-moneyos` | Safely inspect and operate the live MoneyOS Multica workspace. |
 | `proxmox-ops` | Inspect and safely operate configured Proxmox instances. |
 | `ssh-server-ops` | Inspect SSH hosts through local SSH aliases. |
 | `ugreen-nas-ops` | Inspect and safely operate a configured UGREEN NAS. |
@@ -44,7 +46,7 @@ git -C ~/agent-skills pull
 
 ## Repository policy
 
-This repository contains only the seven custom skills listed above. Package- or product-managed skills such as Computer Use, Orca orchestration, Herdr, Paseo, and Supacode must be reinstalled from their upstream packages rather than copied here.
+This repository contains only the custom skills listed above. Package- or product-managed skills such as Computer Use, Orca orchestration, Herdr, Paseo, and Supacode must be reinstalled from their upstream packages rather than copied here.
 
 Private IPs, host inventories, runtime IDs, production URLs, and secrets belong in environment variables or ignored local configuration—not Git.
 
