@@ -1,13 +1,16 @@
 {
   "name": "jakkrit-agent-skills",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Jakkrit's portable Agent Skills for Pi, Oh My Pi, and compatible runtimes.",
+  "description": "Jakkrit's portable Agent Skills and thin Pi adapters for compatible runtimes.",
   "keywords": [
     "agent-skills",
     "pi-package"
   ],
   "pi": {
+    "extensions": [
+      "./extensions"
+    ],
     "skills": [
       "./skills"
     ]
@@ -16,5 +19,9 @@
     "skills": [
       "./skills"
     ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
   }
 }

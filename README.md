@@ -9,6 +9,7 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 | `codebase-integrity-review` | Audit redundancy, conflicting definitions, SSOT violations, and files over 800 lines. |
 | `karpathy-llm-wiki` | Build and maintain a source-grounded Markdown/Obsidian LLM wiki. |
 | `home-assistant-control` | Safely operate a configured Home Assistant integration. |
+| `herdr-tailnet-fleet` | Audit and safely maintain Herdr across Tailscale/Headscale SSH hosts. |
 | `local-network-scan` | Perform read-only LAN inventory and camera/NVR discovery. |
 | `multica-jakkrit` | Triage ideas and safely operate Jakkrit's live MoneyOS Multica workspace. |
 | `proxmox-ops` | Inspect and safely operate configured Proxmox instances. |
@@ -17,27 +18,55 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 
 ## Install
 
-### Shared checkout (recommended for Pi + OMP on one machine)
-
-```bash
-git clone git@github.com:jakkzz/agent-skills.git ~/agent-skills
-~/agent-skills/scripts/link-shared.sh
-```
-
-Both runtimes discover `~/.agents/skills`. Run `/reload` in Pi or start a new OMP session after installation.
-
-### Runtime package installation
-
-Install independently when a shared checkout is not desired:
+### Pi — official package flow
 
 ```bash
 pi install git:github.com/jakkzz/agent-skills
+```
+
+This loads the declared skills and Pi extensions globally. Run `/reload` in an existing Pi session.
+
+### Shared checkout for development or OMP
+
+```bash
+git clone git@github.com:jakkzz/agent-skills.git ~/agent-skills
+pi install ~/agent-skills
+~/agent-skills/scripts/link-shared.sh
+```
+
+The link script exposes portable skills through `~/.agents/skills` for OMP and other compatible runtimes. Pi-specific extensions remain package-loaded through the official `pi install` flow.
+
+OMP can also install the Git package directly:
+
+```bash
 omp plugin install git@github.com:jakkzz/agent-skills.git
 ```
 
-The package declares both `pi.skills` and `omp.skills` and uses the conventional `skills/` directory.
+## Herdr Tailnet fleet setup
+
+The Pi extension contributes the read-only `herdr_tailnet_status` tool and `/herdr-fleet` command. It refuses SSH aliases that do not resolve to a node in the active Tailscale network.
+
+Create machine-local configuration without committing private inventory:
+
+```bash
+mkdir -p ~/.config/herdr-tailnet
+cp ~/agent-skills/config/herdr-tailnet.example.json ~/.config/herdr-tailnet/fleet.json
+$EDITOR ~/.config/herdr-tailnet/fleet.json
+```
+
+Override the path with `HERDR_TAILNET_CONFIG`. Each host entry needs only a display name, an existing SSH alias, and `platform` set to `unix` or `windows`.
+
+The extension is intentionally read-only. Installation, SSH trust changes, node renames, and Herdr server restarts remain confirmation-gated workflows in the skill.
 
 ## Update
+
+For the Git package:
+
+```bash
+pi update git:github.com/jakkzz/agent-skills
+```
+
+For a development checkout:
 
 ```bash
 git -C ~/agent-skills pull
@@ -45,7 +74,7 @@ git -C ~/agent-skills pull
 
 ## Repository policy
 
-This repository contains only the custom skills listed above. Package- or product-managed skills such as Computer Use, Orca orchestration, Herdr, Paseo, and Supacode must be reinstalled from their upstream packages rather than copied here.
+This repository contains portable custom skills plus narrowly scoped runtime adapters declared in `package.json`. Package- or product-managed skills such as Computer Use, Orca orchestration, Herdr's upstream integration, Paseo, and Supacode must be reinstalled from their upstream packages rather than copied here. The `herdr-tailnet-fleet` skill is an operational safety workflow, not a vendored Herdr integration.
 
 Private IPs, host inventories, runtime IDs, production URLs, and secrets belong in environment variables or ignored local configuration—not Git.
 

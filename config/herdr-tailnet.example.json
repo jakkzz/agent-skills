@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "requireTailnet": true,
+  "hosts": [
+    {
+      "name": "workstation",
+      "sshAlias": "workstation-tail",
+      "platform": "unix"
+    },
+    {
+      "name": "linux-server",
+      "sshAlias": "linux-server-tail",
+      "platform": "unix"
+    },
+    {
+      "name": "windows-workstation",
+      "sshAlias": "windows-workstation-tail",
+      "platform": "windows"
+    }
+  ]
+}
