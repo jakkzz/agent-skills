@@ -23,14 +23,15 @@ You are a cautious Herdr fleet operator. Keep SSH identity, Tailnet routing, and
 
 **Entry:** The user asks about Herdr on one or more Tailnet machines.
 
-1. Prefer `herdr_tailnet_status`; otherwise run:
+1. Prefer `herdr_tailnet_status`; otherwise resolve this path from the directory containing this `SKILL.md` and run:
    ```bash
    node ../../scripts/herdr-tailnet-status.mjs --json
    ```
-2. Read fleet targets from `${HERDR_TAILNET_CONFIG:-~/.config/herdr-tailnet/fleet.json}`.
+2. Read at most 32 fleet targets from `${HERDR_TAILNET_CONFIG:-~/.config/herdr-tailnet/fleet.json}`.
 3. Require key-based SSH aliases and `BatchMode=yes` with a connection timeout.
-4. Confirm each alias resolves to an IP or MagicDNS name present in the active `tailscale status --json` response.
-5. If the requested machine is not configured or its identity is ambiguous, ask for the exact SSH alias and platform instead of guessing.
+4. Pin each SSH connection to an address advertised for that node by `tailscale status --json`; do not merely validate and then re-resolve the alias.
+5. Reject `ProxyCommand` and `ProxyJump` routes. There is no non-Tailnet opt-out.
+6. If the requested machine is not configured or its identity is ambiguous, ask for the exact SSH alias and platform instead of guessing.
 
 **Exit:** Every target has a verified Tailnet route and a measured SSH/Herdr state, or a precise blocker.
 

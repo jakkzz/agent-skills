@@ -1,6 +1,5 @@
 {
   "version": 1,
-  "requireTailnet": true,
   "hosts": [
     {
       "name": "workstation",

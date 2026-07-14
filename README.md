@@ -44,17 +44,25 @@ omp plugin install git@github.com:jakkzz/agent-skills.git
 
 ## Herdr Tailnet fleet setup
 
-The Pi extension contributes the read-only `herdr_tailnet_status` tool and `/herdr-fleet` command. It refuses SSH aliases that do not resolve to a node in the active Tailscale network.
+The Pi extension contributes the read-only `herdr_tailnet_status` tool and `/herdr-fleet` command. It pins each SSH connection to an address advertised by the active Tailscale control plane and rejects aliases using `ProxyCommand` or `ProxyJump`.
 
 Create machine-local configuration without committing private inventory:
 
 ```bash
 mkdir -p ~/.config/herdr-tailnet
-cp ~/agent-skills/config/herdr-tailnet.example.json ~/.config/herdr-tailnet/fleet.json
+cat > ~/.config/herdr-tailnet/fleet.json <<'JSON'
+{
+  "version": 1,
+  "hosts": [
+    { "name": "workstation", "sshAlias": "workstation-tail", "platform": "unix" },
+    { "name": "windows-box", "sshAlias": "windows-tail", "platform": "windows" }
+  ]
+}
+JSON
 $EDITOR ~/.config/herdr-tailnet/fleet.json
 ```
 
-Override the path with `HERDR_TAILNET_CONFIG`. Each host entry needs only a display name, an existing SSH alias, and `platform` set to `unix` or `windows`.
+A development checkout also includes `config/herdr-tailnet.example.json`. Override the local path with `HERDR_TAILNET_CONFIG`. Each entry needs a display name, an existing SSH alias, and `platform` set to `unix` or `windows`; fleets are limited to 32 hosts.
 
 The extension is intentionally read-only. Installation, SSH trust changes, node renames, and Herdr server restarts remain confirmation-gated workflows in the skill.
 
