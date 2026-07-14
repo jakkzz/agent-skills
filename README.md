@@ -7,6 +7,12 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 | Skill | Purpose |
 |---|---|
 | `codebase-integrity-review` | Audit redundancy, conflicting definitions, SSOT violations, and files over 800 lines. |
+| `karpathy-llm-wiki` | Build and maintain a source-grounded Markdown/Obsidian LLM wiki. |
+| `home-assistant-control` | Safely operate a configured Home Assistant integration. |
+| `local-network-scan` | Perform read-only LAN inventory and camera/NVR discovery. |
+| `proxmox-ops` | Inspect and safely operate configured Proxmox instances. |
+| `ssh-server-ops` | Inspect SSH hosts through local SSH aliases. |
+| `ugreen-nas-ops` | Inspect and safely operate a configured UGREEN NAS. |
 
 ## Install
 
@@ -36,22 +42,11 @@ The package declares both `pi.skills` and `omp.skills` and uses the conventional
 git -C ~/agent-skills pull
 ```
 
-## Candidate custom skills to migrate
+## Repository policy
 
-Good portable candidates after removing machine-specific values:
+This repository contains only the seven custom skills listed above. Package- or product-managed skills such as Computer Use, Orca orchestration, Herdr, Paseo, and Supacode must be reinstalled from their upstream packages rather than copied here.
 
-- `karpathy-llm-wiki`
-- `home-assistant-control` (requires the matching HA tools/extension)
-- `local-network-scan`
-- `multica-idea-triage`
-- `multica-moneyos`
-- `proxmox-ops`
-- `ssh-server-ops`
-- `ugreen-nas-ops`
-
-Do not copy package- or product-managed skills such as Computer Use, Orca orchestration, Herdr, Paseo, or Supacode. Reinstall those from their upstream packages.
-
-Before migrating personal operations skills, replace private IPs, host lists, workspace IDs, production URLs, and other machine-specific values with environment variables or ignored local configuration.
+Private IPs, host inventories, runtime IDs, production URLs, and secrets belong in environment variables or ignored local configuration—not Git.
 
 ## Add a skill
 
