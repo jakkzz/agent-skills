@@ -1,0 +1,20 @@
+{
+  "name": "jakkrit-agent-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jakkrit's portable Agent Skills for Pi, Oh My Pi, and compatible runtimes.",
+  "keywords": [
+    "agent-skills",
+    "pi-package"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  },
+  "omp": {
+    "skills": [
+      "./skills"
+    ]
+  }
+}
