@@ -189,7 +189,12 @@ function compactError(text) {
 }
 
 async function auditHost(host, tailnet) {
-  const base = { name: host.name, sshAlias: host.sshAlias, platform: host.platform };
+  const base = {
+    name: host.name,
+    sshAlias: host.sshAlias,
+    platform: host.platform,
+    remoteAttachSupported: host.platform !== "windows",
+  };
   const sshConfig = await run("ssh", ["-G", "--", host.sshAlias], 5_000);
   if (sshConfig.code !== 0) return { ...base, connected: false, viaTailnet: false, error: compactError(sshConfig.stderr) };
 
@@ -238,7 +243,7 @@ async function mapLimit(items, limit, worker) {
 }
 
 function formatTable(report) {
-  const headers = ["Machine", "SSH alias", "Tailnet", "SSH", "Herdr", "Server", "Compatible", "Blocker"];
+  const headers = ["Machine", "SSH alias", "Tailnet", "SSH", "Herdr", "Server", "Compatible", "Attach", "Blocker"];
   const rows = report.hosts.map((host) => [
     host.name,
     host.sshAlias,
@@ -247,6 +252,7 @@ function formatTable(report) {
     !host.connected ? "-" : host.installed ? host.clientVersion : "missing",
     host.serverStatus || "-",
     host.compatible || "-",
+    host.remoteAttachSupported ? "yes" : "unsupported",
     host.error ? `${host.error.slice(0, 77)}${host.error.length > 77 ? "…" : ""}` : "-",
   ]);
   const widths = headers.map((header, index) => Math.max(header.length, ...rows.map((row) => String(row[index]).length)));

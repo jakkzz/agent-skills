@@ -45,6 +45,7 @@ Classify each target:
 - `installed/stopped`: attach can start the server.
 - `missing`: installation is needed.
 - `incompatible`: client/server protocol differs; inspect pane processes before proposing restart.
+- `remote-unsupported`: native Windows can be audited and run Herdr locally, but cannot be a `herdr --remote` host; use a separately enrolled WSL/Linux Tailnet node on that machine when available.
 - `blocked`: route, SSH authentication, host-key trust, or platform support failed.
 
 Before mutations, state the exact hosts and actions and ask for confirmation. Warn that `herdr server stop` exits pane processes. A Tailnet node rename must use the verified Headscale node ID, never hostname matching alone.
@@ -84,7 +85,7 @@ Re-run the fleet audit and report:
 | Machine | SSH alias | Tailnet route | SSH | Herdr client | Server | Compatible | Blocker |
 |---|---|---|---|---|---|---|---|
 
-Include exact attach commands only for verified targets:
+Include exact attach commands only for verified Linux/macOS targets. Never emit this command for a native Windows host:
 
 ```bash
 herdr --remote <ssh-alias>

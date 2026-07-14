@@ -64,6 +64,8 @@ $EDITOR ~/.config/herdr-tailnet/fleet.json
 
 A development checkout also includes `config/herdr-tailnet.example.json`. Override the local path with `HERDR_TAILNET_CONFIG`. Each entry needs a display name, an existing SSH alias, and `platform` set to `unix` or `windows`; fleets are limited to 32 hosts.
 
+Native Windows can be audited, but Herdr remote attach supports Linux/macOS hosts. For a Windows workstation, enroll WSL as its own Tailnet node and attach to that Linux alias.
+
 The extension is intentionally read-only. Installation, SSH trust changes, node renames, and Herdr server restarts remain confirmation-gated workflows in the skill.
 
 ## Update

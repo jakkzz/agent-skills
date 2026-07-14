@@ -12,6 +12,7 @@ interface FleetHostStatus {
   name: string;
   sshAlias: string;
   platform: "unix" | "windows";
+  remoteAttachSupported: boolean;
   viaTailnet: boolean;
   connected: boolean;
   installed?: boolean;
@@ -62,10 +63,12 @@ function sanitizedDetails(report: FleetReport) {
       connected: report.hosts.filter((host) => host.connected).length,
       installed: report.hosts.filter((host) => host.installed).length,
       compatible: report.hosts.filter((host) => host.compatible === "yes").length,
+      remoteAttachSupported: report.hosts.filter((host) => host.remoteAttachSupported).length,
     },
     hosts: report.hosts.map((host) => ({
       name: host.name,
       platform: host.platform,
+      remoteAttachSupported: host.remoteAttachSupported,
       viaTailnet: host.viaTailnet,
       connected: host.connected,
       installed: host.installed,
@@ -82,7 +85,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "herdr_tailnet_status",
     label: "Herdr Tailnet Status",
-    description: "Read-only audit of up to 32 configured Herdr machines. SSH is pinned to an address advertised by the active Tailscale control plane; proxy routes are rejected. Reports connectivity, Herdr versions, server status, and compatibility. Output is truncated at Pi's 50KB/2000-line limits.",
+    description: "Read-only audit of up to 32 configured Herdr machines. SSH is pinned to an address advertised by the active Tailscale control plane; proxy routes are rejected. Reports connectivity, versions, server compatibility, and whether Herdr remote attach supports the host platform. Output is truncated at Pi's 50KB/2000-line limits.",
     promptSnippet: "Audit configured Herdr hosts over control-plane-verified Tailscale SSH routes",
     promptGuidelines: [
       "Use herdr_tailnet_status before installing, updating, restarting, or attaching to Herdr on a Tailnet machine.",
