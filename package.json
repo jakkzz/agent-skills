@@ -1,6 +1,6 @@
 {
   "name": "jakkrit-agent-skills",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "description": "Jakkrit's portable Agent Skills and thin Pi adapters for compatible runtimes.",
   "keywords": [

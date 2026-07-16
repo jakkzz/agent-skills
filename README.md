@@ -9,6 +9,7 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 | `codebase-integrity-review` | Run a dry-run, multi-reviewer audit of code changes and codebases for regressions, conflicts, duplication, SSOT violations, risky hardcoding, and oversized files; critique and revise the final report. |
 | `karpathy-llm-wiki` | Build and maintain a source-grounded Markdown/Obsidian LLM wiki. |
 | `home-assistant-control` | Safely operate a configured Home Assistant integration. |
+| `herdr-tab-namer` | Give the current Herdr tab a concise task-based label; Pi auto-renames it from substantial top-level prompts. |
 | `herdr-tailnet-fleet` | Audit and safely maintain Herdr across Tailscale/Headscale SSH hosts. |
 | `local-network-scan` | Perform read-only LAN inventory and camera/NVR discovery. |
 | `multica-jakkrit` | Triage ideas and safely operate Jakkrit's live MoneyOS Multica workspace. |
@@ -35,6 +36,8 @@ pi install ~/agent-skills
 ```
 
 The link script exposes portable skills through `~/.agents/skills` for OMP and other compatible runtimes. Pi-specific extensions remain package-loaded through the official `pi install` flow.
+
+When Pi runs inside Herdr, the tab-namer extension derives a safe, compact label from each substantial top-level prompt. It skips slash commands, generic follow-ups, streaming interruptions, and prompts containing likely credentials. Rename manually with `/herdr-tab-name <label>`.
 
 OMP can also install the Git package directly:
 
