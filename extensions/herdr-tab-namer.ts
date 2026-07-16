@@ -17,7 +17,11 @@ const genericFollowUps = new Set([
 ]);
 
 function managedHerdrContext(): boolean {
-  return process.env.HERDR_ENV === "1" && Boolean(process.env.HERDR_TAB_ID?.trim());
+  return (
+    process.env.HERDR_ENV === "1" &&
+    Boolean(process.env.HERDR_TAB_ID?.trim()) &&
+    Boolean(process.env.HERDR_WORKSPACE_ID?.trim())
+  );
 }
 
 export function deriveTabLabel(rawPrompt: string): string | undefined {

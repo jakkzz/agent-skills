@@ -1,6 +1,6 @@
 ---
 name: herdr-tab-namer
-description: Name the current Herdr tab from the active task using a short, readable label. Use when the user asks to name, rename, or label the current Herdr tab, or when working inside Herdr and concise task-based tab names are desired. Requires HERDR_ENV=1 and HERDR_TAB_ID.
+description: Name the current Herdr tab as "workspace - current task" using a short, readable label. Use when the user asks to name, rename, or label the current Herdr tab, or when working inside Herdr and concise task-based tab names are desired. Requires HERDR_ENV=1, HERDR_WORKSPACE_ID, and HERDR_TAB_ID.
 allowed-tools:
   - bash
 ---
@@ -11,7 +11,7 @@ You are a concise Herdr context labeler. Rename only the tab containing the curr
 
 ## Boundaries
 
-**MAY:** rename the caller's current Herdr tab using its injected `HERDR_TAB_ID`.
+**MAY:** read the caller's current workspace label using its injected `HERDR_WORKSPACE_ID` and rename the caller's current tab using its injected `HERDR_TAB_ID`.
 
 **MAY NOT:** control Herdr from outside a Herdr-managed pane, target a focused or guessed tab, rename another tab or workspace, persist runtime IDs, or put secrets and private data in labels.
 
@@ -22,12 +22,14 @@ You are a concise Herdr context labeler. Rename only the tab containing the curr
 Check the managed environment before doing anything:
 
 ```bash
-test "${HERDR_ENV:-}" = 1 && test -n "${HERDR_TAB_ID:-}"
+test "${HERDR_ENV:-}" = 1 \
+  && test -n "${HERDR_WORKSPACE_ID:-}" \
+  && test -n "${HERDR_TAB_ID:-}"
 ```
 
 If the check fails, say this agent is not running inside a Herdr-managed pane and stop. Do not inspect or control the externally focused Herdr session.
 
-**Exit:** `HERDR_ENV=1` and the caller's injected tab ID is available.
+**Exit:** `HERDR_ENV=1` and the caller's injected workspace and tab IDs are available.
 
 ## Phase 2 — Choose a Label
 
@@ -60,10 +62,10 @@ Resolve the helper relative to this `SKILL.md`, then run:
 scripts/name-tab.sh "<label>"
 ```
 
-The helper must use only the injected `HERDR_TAB_ID`; never substitute a UI-focused tab or an ID from earlier output. Treat a rename failure as non-destructive: report it briefly and continue the user's main task.
+The helper reads the current workspace label and produces `workspace - current task` without literal angle brackets. It must use only the injected `HERDR_WORKSPACE_ID` and `HERDR_TAB_ID`; never substitute UI-focused resources or IDs from earlier output. Treat a rename failure as non-destructive: report it briefly and continue the user's main task.
 
 **Exit:** The current tab is renamed, or the user receives a concise reason it was skipped.
 
 ## Output
 
-On success, respond briefly: `Herdr tab: <label>` and continue the main task. Do not include Herdr JSON or runtime IDs.
+On success, respond briefly: `Herdr tab: <workspace> - <current task>` and continue the main task. Do not include Herdr JSON or runtime IDs.
