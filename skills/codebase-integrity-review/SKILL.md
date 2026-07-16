@@ -1,113 +1,175 @@
 ---
 name: codebase-integrity-review
-description: Evidence-based codebase audit for redundancy, duplicate implementations, conflicting definitions, and single-source-of-truth violations. Also identifies files over 800 lines and proposes responsibility-based refactors. Use when asked to check duplication, duplicacy, redundancy, conflicts, SSOT, oversized files, codebase integrity, or refactoring opportunities.
-allowed-tools: Read Grep Glob Bash
+description: Dry-run, evidence-based codebase and code-change integrity audit using independent subagent reviewers, followed by adversarial critique and a revised final report. Finds oversized files, conflicts, redundancy, duplicate implementations, SSOT violations, risky hardcoding, configuration drift, and documentation contradictions. Use for thorough code review, architecture integrity review, duplication audits, hardcode audits, or reviewing a Git diff before refactoring or release.
+compatibility: Requires Git for change-aware review. Multi-reviewer mode requires a native subagent/delegation tool or a Pi CLI fallback; otherwise the skill must disclose a sequential-review fallback.
+allowed-tools: read grep find ls bash subagent
 ---
 
 # Codebase Integrity Review
 
-Act as a skeptical staff engineer auditing maintainability and architectural coherence. Find real duplication and conflicting ownership without rewarding abstraction for its own sake.
+Act as a skeptical staff engineer. Audit maintainability and architectural coherence without rewarding abstraction for its own sake.
 
-## Boundaries
+## Non-Negotiable Mode: Dry Run
 
-**This skill MAY:** read code and project documentation, inspect history and call sites, run read-only searches/checks, and propose refactors.
-**This skill MAY NOT:** edit files, delete code, commit changes, or claim duplication from superficial similarity alone.
+Every invocation starts in **DRY RUN** mode.
 
-This is a review, not an implementation. Do not modify the repository unless the user separately asks to apply accepted recommendations.
+**MAY:** read source and project documentation, inspect Git history/status/diffs, count lines, search call sites, run safe read-only analysis, query read-only metadata, and propose changes.
 
-## Phase 1: Establish Scope
+**MUST NOT:** edit repository files, apply patches, format code, update dependencies, commit, push, deploy, restart services, mutate databases, or run destructive commands. Do not auto-fix findings.
 
-**Entry:** The skill is invoked with an optional path or scope.
+Temporary files outside the repository are allowed only for passing a diff or draft to isolated reviewers. Remove them after use. Do not print secrets or read ignored `.env` contents; inspect only whether secret-bearing files are tracked or ignored.
 
-1. Use the supplied path; otherwise audit the current repository.
-2. If there are multiple plausible repositories or no clear project root, ask which target to review.
-3. Read applicable `AGENTS.md`, `CLAUDE.md`, README, architecture docs, ADRs, manifests, and generator/config documentation.
-4. Check repository status and ignore rules. Identify generated, vendored, minified, lock, snapshot, fixture, and migration files so they are not treated as ordinary source.
-5. For a very large repository, state the inspected scope and prioritize core application code, shared libraries, schemas, configuration, and public interfaces.
+Start the final answer with:
 
-**Exit:** Review scope, project conventions, exclusions, and likely architectural boundaries are known.
+```text
+DRY RUN — no repository, Git, database, service, or deployment mutations performed.
+```
 
-## Phase 2: Build the Ownership Map
+If the user separately asks to apply findings, end this review first and treat implementation as a new, explicitly authorized task.
 
-**Entry:** Project context is loaded.
+## Invocation Defaults
 
-Map important concepts to their current definitions and consumers. Search for:
+- Scope: the current Git repository unless the user supplies a path.
+- Change base, in order: user-specified ref; merge-base with the configured upstream; merge-base with the default branch; `HEAD` for working-tree-only changes.
+- Include staged, unstaged, and untracked source files in change review.
+- If the tree is clean, audit the whole repository.
+- Large-file threshold: report relevant source files over 800 physical lines; add a clearly labeled 500–800 watch list when responsibility density warrants it.
+- Multi-reviewer budget: four parallel specialist reviewers plus one response critic. If the user supplies a lower budget, obey it.
 
-- domain models, types, interfaces, enums, schemas, and validators
-- constants, defaults, environment variables, feature flags, and configuration
-- routes, commands, event names, dependency registrations, and exports
-- business rules, formatters, adapters, and utility functions
-- database schema, API contracts, generated clients, and documentation claims
+## Phase 1 — Establish Scope and Safety
 
-For each repeated concept, determine whether one definition is authoritative, generated from another, intentionally boundary-specific, or accidentally duplicated. Trace representative call sites before judging ownership.
+1. Resolve the repository root and requested scope.
+2. Read every applicable `AGENTS.md`/`CLAUDE.md`, README, architecture document, ADR, manifest, generator/config document, and linked instruction needed for the scope.
+3. Capture without changing anything:
+   - branch, HEAD, upstream/default branch, and merge-base
+   - staged/unstaged/untracked paths
+   - diff statistics and changed-file list
+   - ignore rules and whether secrets/build artifacts are tracked
+4. Classify generated, vendored, minified, lock, snapshot, fixture, migration, and binary files. Do not review them as ordinary source; retain them as contract/history evidence when relevant.
+5. State the exact review scope and exclusions.
 
-**Exit:** Candidate canonical sources and competing definitions are identified.
+**Exit:** A change manifest and repository boundary are known.
 
-## Phase 3: Audit Four Dimensions
+## Phase 2 — Build an Evidence Bundle
 
-**Entry:** Ownership candidates are available.
+Map important concepts to their definitions and consumers:
 
-### A. Redundancy and duplication
+- models, schemas, DTOs, enums, validators, and database constraints
+- authorization roles, capabilities, state machines, and business thresholds
+- environment variables, defaults, flags, URLs, product identifiers, and magic numbers
+- routes, commands, registrations, event names, and public interfaces
+- formatting, timezones, projections, caches, and denormalized fields
+- documentation claims and operational behavior
 
-Find exact copies, near-copies, parallel implementations of the same rule, dead wrappers, repeated constants, and abstractions that add no independent behavior. Distinguish harmful duplication from deliberate isolation, test fixtures, compatibility layers, and small local code that is clearer than premature reuse.
+For changed code, trace both upstream producers and downstream consumers. Record representative `file:line` evidence before forming conclusions.
 
-### B. Conflicts
+Search hardcoding by category:
 
-Look for incompatible defaults, divergent types or schemas, contradictory validation, duplicate route/handler registration, stale documentation, inconsistent naming with behavioral impact, and config precedence that can produce different answers.
+1. **Risky:** credentials/default passwords, environment-specific hosts, tenant/course/user IDs, policy thresholds, duplicated status values, mutable product facts, test IDs in production paths.
+2. **Potentially legitimate:** protocol constants, vendor API endpoints, file signatures, standards-defined limits, immutable attribution URLs.
+3. **Presentation-only:** copy or labels that still become conflicts when they assert dynamic facts.
 
-### C. Single source of truth
+Try to disprove each candidate before reporting it.
 
-For every genuine SSOT issue, name:
+**Exit:** The parent reviewer has a compact evidence bundle and candidate ownership map.
 
-1. the concept that needs one owner
-2. the current competing sources
-3. the recommended canonical source
-4. how other representations should derive from or reference it
-5. migration and compatibility risks
+## Phase 3 — Spawn Independent Reviewers
 
-Do not call two representations an SSOT violation when they serve distinct boundaries and require explicit translation.
+Use the runtime's native `subagent`, task, or delegation tool when available. Run four reviewers in parallel. Use the exact specialist briefs in [references/reviewer-prompts.md](references/reviewer-prompts.md).
 
-### D. Files over 800 lines
+Required reviewers:
 
-Measure physical lines for relevant source files. Exclude generated/vendor/minified/lock/snapshot files and clearly label other exceptions. A file exceeding 800 lines is a review trigger, not automatic evidence of poor design.
+1. **Change correctness and regression reviewer**
+2. **Architecture, conflict, and SSOT reviewer**
+3. **Duplication, redundancy, and oversized-file reviewer**
+4. **Hardcoding, configuration, security-default, and documentation-drift reviewer**
 
-Propose extraction only when the file has multiple responsibilities or stable seams. Name concrete modules to extract, their responsibilities, dependencies, public interfaces, and a safe migration order. Prefer a cohesive 900-line file over arbitrary fragmentation.
+Give every reviewer:
 
-**Exit:** Candidate findings and oversized-file recommendations are documented.
+- repository root and review base
+- changed-file manifest and diff/evidence bundle
+- applicable project instructions
+- strict read-only constraints
+- requirement for exact `file:line` evidence
+- requirement to attempt to disprove findings
 
-## Phase 4: Verify Findings
+Subagents must return structured findings, not edits.
 
-**Entry:** Candidate findings exist.
+### Subagent Fallback
 
-For each candidate:
+If no native delegation tool exists:
+
+1. Prefer a runtime-supported isolated-agent command.
+2. For Pi, invocation of this skill authorizes up to five read-only child reviewers. A safe fallback may spawn isolated `pi -p --no-session` processes with only read/search tools. Pass the diff through a temporary file outside the repository; do not grant edit/write tools.
+3. If isolated subprocesses are unavailable, perform four clearly separated sequential passes in the parent context and state: `Subagents unavailable; sequential independent-pass fallback used.` Never pretend subagents ran.
+
+A failed reviewer must not abort the audit. Report the failure and continue with available evidence.
+
+**Exit:** Four independent review outputs or an explicitly disclosed fallback are available.
+
+## Phase 4 — Synthesize and Verify
+
+Merge reviewer outputs with the parent evidence bundle.
+
+For every candidate:
 
 1. Read both definitions and representative consumers.
 2. Identify the observable failure, maintenance cost, or divergence risk.
-3. Search for tests, generators, comments, ADRs, or history that explain the duplication.
-4. Try to disprove the finding; downgrade or remove it when intent is legitimate.
-5. Record exact `file:line` evidence and confidence.
-6. Run only targeted read-only validation commands when useful; report commands and failures honestly.
+3. Search tests, generators, comments, ADRs, and history for intentional duplication.
+4. Distinguish:
+   - harmful duplicate authority
+   - deliberate boundary translation
+   - database/API validation at separate layers
+   - immutable migration history
+   - test fixtures intentionally mirroring contracts
+5. Deduplicate overlapping findings.
+6. Calibrate severity:
+   - **Critical:** active conflict can cause unsafe, corrupt, or security-sensitive behavior
+   - **High:** already divergent or likely to produce incorrect behavior
+   - **Medium:** meaningful change risk, redundancy, or responsibility overload
+   - **Low:** bounded cleanup opportunity
+7. Assign confidence and remove claims that cannot be supported with exact evidence.
 
-Severity guide:
+For each SSOT finding, name:
 
-- **Critical:** active conflict can cause incorrect, unsafe, or corrupt behavior
-- **High:** competing authorities are likely to diverge or already do
-- **Medium:** meaningful redundancy or oversized responsibility increases change risk
-- **Low:** cleanup opportunity with limited operational risk
+- the concept needing one owner
+- current competing sources
+- recommended canonical source
+- derivation/consumer rule
+- migration and compatibility risk
 
-**Exit:** Every reported finding has evidence, consequence, and a defensible recommendation.
+For each oversized file, name cohesive extraction seams and a safe migration order. Never recommend arbitrary splitting solely because of line count.
 
-## Phase 5: Report
+**Exit:** A verified, deduplicated finding set exists.
 
-**Entry:** Findings are verified.
+## Phase 5 — Draft, Critique, and Revise
 
-Use this structure:
+1. Create a private Draft V1 using the report structure below.
+2. Spawn one final **response critic** using the prompt in [references/reviewer-prompts.md](references/reviewer-prompts.md). Give it Draft V1 plus the evidence/finding index.
+3. The critic checks:
+   - unsupported or overstated claims
+   - missed conflicts in changed code
+   - false-positive duplication
+   - severity and confidence calibration
+   - missing canonical owners or migration risks
+   - recommendations that would violate project constraints
+4. Revise the report using valid criticism. Do not blindly accept critic feedback.
+5. Return only the revised final report unless the user asks for reviewer transcripts or Draft V1.
+
+**Exit:** The user receives a second-pass, adversarially reviewed answer.
+
+## Final Report Structure
 
 ```markdown
+DRY RUN — no repository, Git, database, service, or deployment mutations performed.
+
 ## Codebase Integrity Review: <scope>
 
 ### Executive Summary
-<scope, exclusions, counts, and overall verdict>
+<scope, change base, exclusions, reviewer count/failures, finding counts, verdict>
+
+### Changed-Code Review
+<regressions, behavior changes, missing tests, or "no material issues">
 
 ### Findings
 #### [HIGH][SSOT-1] <concept>
@@ -115,20 +177,28 @@ Use this structure:
 - Competing sources: ...
 - Consequence: ...
 - Canonical source: ...
+- Derivation rule: ...
 - Recommendation: ...
+- Compatibility risk: ...
 - Confidence: High | Medium | Low
 
+### Hardcoding Inventory
+| Category | Evidence | Verdict | Recommended owner |
+
 ### Oversized Files
-| File | Lines | Responsibilities | Refactor verdict | Proposed seams |
+| File | Lines | Classification | Responsibilities | Refactor verdict | Proposed seams |
 
 ### Canonical Ownership Map
-| Concept | Current sources | Recommended owner | Derivation/consumer rule |
+| Concept | Current sources | Recommended owner | Consumer rule |
 
 ### Refactor Sequence
 1. <small, behavior-preserving step and verification>
 
+### Reviewer Reconciliation
+<agreements, rejected claims, unresolved disagreements, failed reviewers>
+
 ### Validation and Limitations
-<commands run, excluded areas, assumptions, and uninspected scope>
+<commands run, exclusions, unavailable tools, assumptions>
 
 ### Verdict
 PASS | PASS WITH RECOMMENDATIONS | REFACTOR ADVISED | CONFLICTS REQUIRE ACTION
@@ -136,13 +206,15 @@ PASS | PASS WITH RECOMMENDATIONS | REFACTOR ADVISED | CONFLICTS REQUIRE ACTION
 
 Order findings by severity, then confidence. Do not pad the report with style preferences. If no meaningful issues exist, say so directly.
 
-Example finding: two files both parse the same environment variable with different defaults is an SSOT conflict; two API-boundary DTOs with explicit conversion are probably intentional separation.
+## Final Checklist
 
-**Exit:** The user receives an evidence-backed review and an actionable, behavior-preserving refactor proposal.
-
-## Final Check
-
-- [ ] Project instructions, scope, exclusions, and generated-file boundaries were respected
-- [ ] Duplication and conflicts were verified through consumers and observable consequences
-- [ ] Each SSOT/refactor recommendation names an owner, derivation path, and cohesive extraction seam
-- [ ] No repository files were modified
+- [ ] Dry-run banner present and no mutations performed
+- [ ] Project instructions and generated-file boundaries respected
+- [ ] Changed code and whole-system interactions reviewed
+- [ ] Four specialist reviewers ran, or fallback was disclosed
+- [ ] Response critic reviewed Draft V1 and final response was revised
+- [ ] Every finding has exact evidence, consequence, recommendation, and confidence
+- [ ] SSOT findings name canonical owner and derivation path
+- [ ] Hardcodes are classified rather than indiscriminately condemned
+- [ ] Files over 800 lines are listed; generated exceptions are labeled
+- [ ] Reviewer disagreements and limitations are disclosed

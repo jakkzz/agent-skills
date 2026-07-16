@@ -6,7 +6,7 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 
 | Skill | Purpose |
 |---|---|
-| `codebase-integrity-review` | Audit redundancy, conflicting definitions, SSOT violations, and files over 800 lines. |
+| `codebase-integrity-review` | Run a dry-run, multi-reviewer audit of code changes and codebases for regressions, conflicts, duplication, SSOT violations, risky hardcoding, and oversized files; critique and revise the final report. |
 | `karpathy-llm-wiki` | Build and maintain a source-grounded Markdown/Obsidian LLM wiki. |
 | `home-assistant-control` | Safely operate a configured Home Assistant integration. |
 | `herdr-tailnet-fleet` | Audit and safely maintain Herdr across Tailscale/Headscale SSH hosts. |
