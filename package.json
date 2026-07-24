@@ -1,6 +1,6 @@
 {
   "name": "jakkrit-agent-skills",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "private": true,
   "description": "Jakkrit's portable Agent Skills and thin Pi adapters for compatible runtimes.",
   "keywords": [
@@ -13,6 +13,9 @@
     ],
     "skills": [
       "./skills"
+    ],
+    "prompts": [
+      "./prompts"
     ]
   },
   "omp": {
@@ -22,6 +25,8 @@
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-coding-agent": "*"
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
   }
 }

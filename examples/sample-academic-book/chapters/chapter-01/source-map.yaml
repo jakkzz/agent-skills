@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "chapter": "chapter-01",
+  "sources": [
+    {
+      "source_id": "smith2025",
+      "citation_key": "Smith2025",
+      "role": "demonstration",
+      "evidence_level": "full-text",
+      "selection_reason": "Provides the fixture's bounded example claim."
+    }
+  ]
+}

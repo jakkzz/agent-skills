@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jakkrit.local/academic-book/book-state.schema.json",
+  "title": "Academic Book State",
+  "type": "object",
+  "required": ["schema_version", "project", "phase", "chapters", "citation_style", "privacy_mode"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "project": {
+      "type": "object",
+      "required": ["title", "field", "book_type", "audience"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "field": {"type": "string", "minLength": 1},
+        "book_type": {"type": "string", "minLength": 1},
+        "audience": {"type": "string", "minLength": 1}
+      }
+    },
+    "phase": {"enum": ["planning", "drafting", "review", "complete"]},
+    "current_chapter": {"type": ["string", "null"]},
+    "chapters": {"type": "array", "items": {"pattern": "^chapter-[a-z0-9-]+$"}, "uniqueItems": true},
+    "citation_style": {"type": "string", "minLength": 1},
+    "output_formats": {"type": "array", "items": {"enum": ["markdown", "docx", "pdf", "epub", "html"]}, "uniqueItems": true},
+    "privacy_mode": {"enum": ["local-only", "approved-apis", "cloud-processing-allowed"]},
+    "created_at": {"type": "string"},
+    "updated_at": {"type": "string"}
+  },
+  "additionalProperties": true
+}

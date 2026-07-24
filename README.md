@@ -7,6 +7,11 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 | Skill | Purpose |
 |---|---|
 | `codebase-integrity-review` | Run a dry-run, multi-reviewer audit of code changes and codebases for regressions, conflicts, duplication, SSOT violations, risky hardcoding, and oversized files; critique and revise the final report. |
+| `academic-book-project` | Coordinate a persistent, human-gated academic book workspace from brief through final export. |
+| `academic-literature-discovery` | Run reproducible multi-provider scholarly discovery without confusing metadata with evidence. |
+| `academic-source-evidence` | Ingest private sources, maintain page-anchored evidence, and validate atomic claim grounding. |
+| `academic-chapter-authoring` | Outline, voice-calibrate, draft, and revise academic chapters one approved stage at a time. |
+| `academic-book-review` | Run independent factual, subject, structural, pedagogical, style, integrity, and cross-chapter reviews. |
 | `karpathy-llm-wiki` | Build and maintain a source-grounded Markdown/Obsidian LLM wiki. |
 | `home-assistant-control` | Safely operate a configured Home Assistant integration. |
 | `herdr-tab-namer` | Auto-name the current Herdr tab as `workspace - current task` from substantial top-level prompts. |
@@ -44,6 +49,36 @@ OMP can also install the Git package directly:
 ```bash
 omp plugin install git@github.com:jakkzz/agent-skills.git
 ```
+
+## Academic Book Studio
+
+The package includes the `academic-book-studio.ts` Pi extension, five portable skills, prompt templates, and the deterministic `bookctl` Python core.
+
+Inside Pi, start with:
+
+```text
+/book-init [optional-target-directory]
+/book-status
+```
+
+Then use the human-gated commands:
+
+```text
+/chapter-approve [chapter] [gate]
+/chapter-next [chapter]
+/chapter-reopen [chapter]
+/source-import <path>
+/evidence-approve <source-id>
+/claim-review <claim-id>
+/book-validate
+/book-export markdown,docx,pdf,epub,html
+```
+
+Prompt templates provide `/book-research`, `/chapter-outline`, `/chapter-draft`, `/chapter-review`, and `/book-final-check`. Model-callable tools are intentionally bounded to status, scholarly discovery, local evidence search, claim validation, and cross-book consistency. Approval remains a human-only command.
+
+Canonical book content is Markdown with Pandoc citation syntax. Zotero plus Better BibTeX can maintain `bibliography/library.bib`; derived DOCX/PDF/EPUB/HTML exports require Pandoc and a reviewed CSL file when the project declares a non-default citation style. Findpapers and PaperQA2 are optional Python extras and are not installed by the Pi package.
+
+See [`docs/academic-book-studio.md`](docs/academic-book-studio.md) for architecture, security, adapters, and the complete workflow.
 
 ## Herdr Tailnet fleet setup
 

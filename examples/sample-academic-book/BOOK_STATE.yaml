@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "project": {
+    "title": "Evidence-Grounded Academic Writing",
+    "field": "Higher education",
+    "book_type": "academic-textbook",
+    "audience": "Graduate students and university instructors"
+  },
+  "phase": "complete",
+  "current_chapter": "chapter-01",
+  "chapters": [
+    "chapter-01"
+  ],
+  "citation_style": "apa",
+  "output_formats": [
+    "markdown"
+  ],
+  "privacy_mode": "local-only",
+  "created_at": "2026-07-24T04:52:31Z",
+  "updated_at": "2026-07-24T05:54:20Z"
+}
