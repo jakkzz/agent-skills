@@ -7,10 +7,10 @@ Private, portable Agent Skills shared across Pi, Oh My Pi (OMP), and other compa
 | Skill | Purpose |
 |---|---|
 | `codebase-integrity-review` | Run a dry-run, multi-reviewer audit of code changes and codebases for regressions, conflicts, duplication, SSOT violations, risky hardcoding, and oversized files; critique and revise the final report. |
-| `academic-book-project` | Coordinate a persistent, human-gated academic book workspace from brief through final export. |
+| `academic-book-project` | Coordinate a persistent academic book workspace with minimal human approval by default and optional stage gates. |
 | `academic-literature-discovery` | Run reproducible multi-provider scholarly discovery without confusing metadata with evidence. |
 | `academic-source-evidence` | Ingest private sources, maintain page-anchored evidence, and validate atomic claim grounding. |
-| `academic-chapter-authoring` | Outline, voice-calibrate, draft, and revise academic chapters one approved stage at a time. |
+| `academic-chapter-authoring` | Outline, voice-calibrate, draft, and revise chapters under minimal or stage-gated approval. |
 | `academic-book-review` | Run independent factual, subject, structural, pedagogical, style, integrity, and cross-chapter reviews. |
 | `karpathy-llm-wiki` | Build and maintain a source-grounded Markdown/Obsidian LLM wiki. |
 | `home-assistant-control` | Safely operate a configured Home Assistant integration. |
@@ -61,7 +61,7 @@ Inside Pi, start with:
 /book-status
 ```
 
-Then use the human-gated commands:
+The default workflow requests a human chapter-brief mandate and one final-packet approval; intermediate phases advance after deterministic checks. Use `stage-gated` mode when every phase needs approval. Human-facing commands include:
 
 ```text
 /chapter-approve [chapter] [gate]

@@ -40,6 +40,7 @@ class CliTests(unittest.TestCase):
             payload = json.loads(status.stdout)
             self.assertTrue(payload["ok"])
             self.assertEqual(payload["result"]["book_title"], "CLI Book")
+            self.assertEqual(payload["result"]["approval_mode"], "minimal")
 
     def test_fail_on_findings_returns_nonzero_with_json_result(self):
         with tempfile.TemporaryDirectory() as temporary:

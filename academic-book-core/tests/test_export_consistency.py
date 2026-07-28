@@ -2,11 +2,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from helpers import advance_to
+
 from academic_book.consistency import check_consistency
 from academic_book.exporter import export_book
 from academic_book.io import BookError
 from academic_book.project import approve, init_project, status
-from helpers import advance_to
 
 BIB = """@book{Smith2025,
   title = {Evidence Book},
@@ -20,7 +21,13 @@ class ExportConsistencyTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name) / "book"
-        init_project(self.root, "Test Book", "Education", "Graduate students")
+        init_project(
+            self.root,
+            "Test Book",
+            "Education",
+            "Graduate students",
+            approval_mode="stage-gated",
+        )
         (self.root / "bibliography/library.bib").write_text(BIB)
 
     def tearDown(self):

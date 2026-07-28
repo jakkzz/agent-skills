@@ -56,8 +56,19 @@ REVIEW_SUPPORTING_ARTIFACTS = [
 ]
 
 PRIVACY_MODES = {"local-only", "approved-apis", "cloud-processing-allowed"}
+APPROVAL_MODES = {"minimal", "stage-gated"}
+DEFAULT_APPROVAL_MODE = "minimal"
+MINIMAL_HUMAN_GATES = {"brief", "final"}
 OUTPUT_FORMATS = {"markdown", "docx", "pdf", "epub", "html"}
 BOOK_PHASES = {"planning", "drafting", "review", "complete"}
+
+
+def approval_mode(root: Path) -> str:
+    book = load_json(root / "BOOK_STATE.yaml")
+    # Legacy workspaces adopt the new low-interruption default. Existing final
+    # approvals without packet manifests still validate through their recorded
+    # full predecessor chain.
+    return str(book.get("approval_mode", DEFAULT_APPROVAL_MODE))
 
 
 def _markdown(title: str, body: str) -> str:
@@ -244,6 +255,7 @@ def _build_project(
     chapter_title: str,
     output_formats: list[str],
     privacy_mode: str,
+    approval_mode: str,
 ) -> dict[str, Any]:
     for directory in (
         "bibliography",
@@ -270,6 +282,7 @@ def _build_project(
         "citation_style": citation_style,
         "output_formats": output_formats,
         "privacy_mode": privacy_mode,
+        "approval_mode": approval_mode,
         "created_at": now,
         "updated_at": now,
     }
@@ -373,11 +386,14 @@ def init_project(
     chapter_title: str = "Introduction",
     output_formats: list[str] | None = None,
     privacy_mode: str = "local-only",
+    approval_mode: str = DEFAULT_APPROVAL_MODE,
 ) -> dict[str, Any]:
     root = root.expanduser().resolve()
     formats = output_formats or ["markdown"]
     if privacy_mode not in PRIVACY_MODES:
         raise BookError(f"Unknown privacy mode: {privacy_mode}")
+    if approval_mode not in APPROVAL_MODES:
+        raise BookError(f"Unknown approval mode: {approval_mode}")
     unknown_formats = set(formats) - OUTPUT_FORMATS
     if unknown_formats:
         raise BookError(f"Unknown output formats: {', '.join(sorted(unknown_formats))}")
@@ -402,6 +418,7 @@ def init_project(
             chapter_title=chapter_title,
             output_formats=formats,
             privacy_mode=privacy_mode,
+            approval_mode=approval_mode,
         )
         os.replace(staging, root)
     except Exception:
@@ -454,6 +471,65 @@ def _approval_signature(record: dict[str, Any]) -> str:
     return f"r{record.get('revision', 0)}:{record.get('sha256', '')}"
 
 
+def artifact_readiness(root: Path, chapter: str, gate: str) -> dict[str, Any]:
+    """Check deterministic completeness without claiming human approval."""
+    target = artifact_for(root, chapter, gate)
+    if not target.is_file():
+        return {"status": "incomplete", "reason": "artifact-missing"}
+    unresolved = find_unresolved_markers(
+        target.read_text(encoding="utf-8", errors="replace")
+    )
+    if unresolved:
+        return {
+            "status": "incomplete",
+            "reason": "unresolved-markers",
+            "count": len(unresolved),
+        }
+    if gate == "source-selection":
+        source_map = load_json(target)
+        sources = source_map.get("sources", [])
+        no_sources_reason = source_map.get("no_sources_reason")
+        if not sources and not (
+            isinstance(no_sources_reason, str) and no_sources_reason.strip()
+        ):
+            return {"status": "incomplete", "reason": "source-selection-empty"}
+    supporting_hashes: dict[str, str] = {}
+    for supporting in supporting_artifacts(root, chapter, gate):
+        if not supporting.is_file():
+            return {
+                "status": "incomplete",
+                "reason": f"supporting-artifact-missing:{supporting.name}",
+            }
+        supporting_unresolved = find_unresolved_markers(
+            supporting.read_text(encoding="utf-8", errors="replace")
+        )
+        if supporting_unresolved:
+            return {
+                "status": "incomplete",
+                "reason": f"supporting-artifact-unresolved:{supporting.name}",
+            }
+        supporting_hashes[str(supporting.relative_to(root))] = sha256_file(supporting)
+    return {
+        "status": "ready",
+        "artifact": str(target.relative_to(root)),
+        "sha256": sha256_file(target),
+        "supporting_artifacts": supporting_hashes,
+    }
+
+
+def _final_artifact_manifest(root: Path, chapter: str) -> dict[str, str]:
+    manifest: dict[str, str] = {}
+    for gate in PHASES:
+        ready = artifact_readiness(root, chapter, gate)
+        if ready.get("status") != "ready":
+            raise BookError(
+                f"Cannot finalize {chapter}; {gate} is not ready: {ready.get('reason')}"
+            )
+        manifest[str(ready["artifact"])] = str(ready["sha256"])
+        manifest.update(ready.get("supporting_artifacts", {}))
+    return manifest
+
+
 def approval_status(
     root: Path, chapter: str, gate: str, _stack: set[str] | None = None
 ) -> dict[str, Any]:
@@ -497,13 +573,34 @@ def approval_status(
                 "reason": f"supporting-artifact-changed:{relative}",
                 "record": record,
             }
+    manifest = record.get("artifact_manifest")
+    if manifest is not None:
+        if not isinstance(manifest, dict) or not manifest:
+            return {
+                "status": "stale",
+                "reason": "artifact-manifest-invalid",
+                "record": record,
+            }
+        for relative, expected_hash in manifest.items():
+            path = safe_relative(root, str(relative))
+            if not path.is_file() or sha256_file(path) != expected_hash:
+                return {
+                    "status": "stale",
+                    "reason": f"manifest-artifact-changed:{relative}",
+                    "record": record,
+                }
     stack = set(_stack or set())
     token = f"{chapter_name}:{gate}"
     if token in stack:
         return {"status": "stale", "reason": "approval-cycle", "record": record}
     stack.add(token)
     predecessors = record.get("predecessors", {})
-    for predecessor in PHASES[: PHASES.index(gate)]:
+    predecessor_gates = (
+        ["brief"]
+        if gate == "final" and isinstance(manifest, dict)
+        else PHASES[: PHASES.index(gate)]
+    )
+    for predecessor in predecessor_gates:
         previous_status = approval_status(root, chapter_name, predecessor, stack)
         if previous_status.get("status") != "approved":
             return {
@@ -525,6 +622,12 @@ def approve(
     root: Path, chapter: str, gate: str, approved_by: str, notes: str = ""
 ) -> dict[str, Any]:
     directory, state = load_chapter(root, chapter)
+    mode = approval_mode(root)
+    if mode == "minimal" and gate not in MINIMAL_HUMAN_GATES:
+        raise BookError(
+            f"Human approval is not required at {gate} in minimal mode; "
+            "complete the artifact and transition to the next phase"
+        )
     if gate != state.get("phase"):
         raise BookError(
             f"Only the current chapter gate may be approved; current phase is {state.get('phase')}"
@@ -555,7 +658,12 @@ def approve(
         supporting_hashes[str(supporting.relative_to(root))] = sha256_file(supporting)
     records = _approval_records(root)
     predecessors: dict[str, str] = {}
-    for predecessor in PHASES[: PHASES.index(gate)]:
+    predecessor_gates = (
+        ["brief"]
+        if mode == "minimal" and gate == "final"
+        else PHASES[: PHASES.index(gate)]
+    )
+    for predecessor in predecessor_gates:
         previous_status = approval_status(root, directory.name, predecessor)
         if previous_status.get("status") != "approved":
             raise BookError(
@@ -578,6 +686,11 @@ def approve(
         "approved_at": utc_now(),
         "notes": notes,
     }
+    if mode == "minimal" and gate == "final":
+        # One final human decision is bound to the complete chapter packet, not
+        # only final.md. Any later change to research, review, or draft artifacts
+        # makes the final approval stale.
+        record["artifact_manifest"] = _final_artifact_manifest(root, directory.name)
     records.append(record)
     save_json(root / "approvals.yaml", {"schema_version": 1, "approvals": records})
     book = load_json(root / "BOOK_STATE.yaml")
@@ -597,11 +710,23 @@ def transition(root: Path, chapter: str, next_phase: str) -> dict[str, Any]:
         raise BookError(
             f"Only the next phase is allowed; expected {expected}, received {next_phase}"
         )
-    gate_status = approval_status(root, directory.name, current)
-    if gate_status.get("status") != "approved":
-        raise BookError(
-            f"Gate {current} is not currently approved: {gate_status.get('status')}"
-        )
+    mode = approval_mode(root)
+    if mode == "minimal" and current not in MINIMAL_HUMAN_GATES:
+        mandate = approval_status(root, directory.name, "brief")
+        if mandate.get("status") != "approved":
+            raise BookError(
+                f"Chapter brief mandate is not currently approved: {mandate.get('status')}"
+            )
+        readiness = artifact_readiness(root, directory.name, current)
+        if readiness.get("status") != "ready":
+            raise BookError(f"Gate {current} is not ready: {readiness.get('reason')}")
+        gate_status = {"status": "delegated", "readiness": readiness}
+    else:
+        gate_status = approval_status(root, directory.name, current)
+        if gate_status.get("status") != "approved":
+            raise BookError(
+                f"Gate {current} is not currently approved: {gate_status.get('status')}"
+            )
     state["phase"] = next_phase
     state["updated_at"] = utc_now()
     save_json(directory / "CHAPTER_STATE.yaml", state)
@@ -631,11 +756,18 @@ def reopen(root: Path, chapter: str, target_phase: str) -> dict[str, Any]:
     book["current_chapter"] = directory.name
     _sync_book_phase(root, book)
     save_json(root / "BOOK_STATE.yaml", book)
+    mode = approval_mode(root)
+    note = (
+        "The final chapter packet requires renewed human approval; the brief mandate "
+        "also requires renewal if its artifact changes."
+        if mode == "minimal"
+        else "The target and all downstream gates require renewed human approval."
+    )
     return {
         "chapter": directory.name,
         "from": current,
         "to": target_phase,
-        "note": "The target and all downstream gates require renewed human approval.",
+        "note": note,
     }
 
 
@@ -646,7 +778,23 @@ def status(root: Path, chapter: str | None = None) -> dict[str, Any]:
         return {"root": str(root), "book": book, "chapter": None}
     directory, chapter_state = load_chapter(root, chapter_name)
     phase = chapter_state.get("phase", "brief")
-    gate = approval_status(root, directory.name, phase)
+    mode = approval_mode(root)
+    if mode == "minimal" and phase not in MINIMAL_HUMAN_GATES:
+        mandate = approval_status(root, directory.name, "brief")
+        readiness = artifact_readiness(root, directory.name, phase)
+        gate = {
+            "status": (
+                "delegated-ready"
+                if mandate.get("status") == "approved"
+                and readiness.get("status") == "ready"
+                else "delegated-incomplete"
+            ),
+            "reason": readiness.get("reason")
+            if readiness.get("status") != "ready"
+            else mandate.get("reason"),
+        }
+    else:
+        gate = approval_status(root, directory.name, phase)
     search_files = list((root / "research/searches").glob("*.jsonl"))
     discovered = sum(
         1
@@ -676,12 +824,18 @@ def status(root: Path, chapter: str | None = None) -> dict[str, Any]:
         "root": str(root),
         "book_title": book.get("project", {}).get("title"),
         "book_phase": derive_book_phase(root, list(book.get("chapters", []))),
+        "approval_mode": mode,
         "chapter": directory.name,
         "chapter_title": chapter_state.get("title"),
         "chapter_phase": phase,
         "next_phase": next_phase,
         "reopen_targets": PHASES[: PHASES.index(phase)] if phase in PHASES else [],
-        "allowed_gates": [phase] if phase in PHASES else [],
+        "allowed_gates": (
+            [phase]
+            if phase in PHASES
+            and (mode == "stage-gated" or phase in MINIMAL_HUMAN_GATES)
+            else []
+        ),
         "current_artifact": str(current_artifact.relative_to(root)),
         "current_artifact_sha256": sha256_file(current_artifact)
         if current_artifact.is_file()
@@ -744,6 +898,9 @@ def validate_project(root: Path, require_final: bool = False) -> dict[str, Any]:
         _issue(issues, "INVALID_BOOK_PHASE", phase=str(book.get("phase")))
     if book.get("privacy_mode") not in PRIVACY_MODES:
         _issue(issues, "INVALID_PRIVACY_MODE", value=str(book.get("privacy_mode")))
+    mode = str(book.get("approval_mode", DEFAULT_APPROVAL_MODE))
+    if mode not in APPROVAL_MODES:
+        _issue(issues, "INVALID_APPROVAL_MODE", value=mode)
     formats = book.get("output_formats")
     if not isinstance(formats, list) or not formats or set(formats) - OUTPUT_FORMATS:
         _issue(issues, "INVALID_OUTPUT_FORMATS")
@@ -809,6 +966,8 @@ def validate_project(root: Path, require_final: bool = False) -> dict[str, Any]:
                     path=str(artifact.relative_to(directory)),
                 )
         gate_status = approval_status(root, chapter, phase)
+        if mode == "minimal" and phase not in MINIMAL_HUMAN_GATES:
+            gate_status = approval_status(root, chapter, "brief")
         if gate_status.get("status") == "stale":
             _issue(
                 issues,

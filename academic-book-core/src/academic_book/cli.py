@@ -102,6 +102,12 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["local-only", "approved-apis", "cloud-processing-allowed"],
         default="local-only",
     )
+    init.add_argument(
+        "--approval-mode",
+        choices=["minimal", "stage-gated"],
+        default="minimal",
+        help="minimal requires human approval only for the chapter brief mandate and final packet",
+    )
 
     chapter_create = sub.add_parser("chapter-create", help="Create another chapter")
     chapter_create.add_argument("--title", required=True)
@@ -119,7 +125,7 @@ def build_parser() -> argparse.ArgumentParser:
     approve_parser.add_argument("--notes", default="")
 
     transition_parser = sub.add_parser(
-        "transition", help="Move to the next approved chapter phase"
+        "transition", help="Move to the next complete and authorized chapter phase"
     )
     transition_parser.add_argument("--chapter", required=True)
     transition_parser.add_argument("--to", choices=PHASES, required=True)
@@ -131,7 +137,7 @@ def build_parser() -> argparse.ArgumentParser:
     reopen_parser.add_argument("--to", choices=PHASES, required=True)
 
     search_parser = sub.add_parser(
-        "search", help="Search scholarly providers after research-plan approval"
+        "search", help="Search scholarly providers after research-plan authorization"
     )
     search_parser.add_argument("--chapter", required=True)
     search_parser.add_argument("--query", required=True)
@@ -239,6 +245,7 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
             chapter_title=args.chapter_title,
             output_formats=_csv(args.formats),
             privacy_mode=args.privacy_mode,
+            approval_mode=args.approval_mode,
         )
     root = _root(args)
     if command == "chapter-create":

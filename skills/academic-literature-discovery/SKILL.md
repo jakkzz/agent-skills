@@ -9,9 +9,9 @@ compatibility: Python 3.11+; network access; optional provider API keys and Find
 ## Preconditions
 
 1. Load `academic-book-project` and inspect book/chapter state.
-2. Complete and approve `research-plan.md`, then transition to `source-selection` before any external search.
+2. Complete `research-plan.md`, then transition to `source-selection` before external search. In minimal mode the approved brief mandate authorizes this bounded plan; stage-gated mode still requires separate research-plan approval.
 3. Confirm `privacy_mode` is `approved-apis` or `cloud-processing-allowed`; `local-only` blocks external providers in the deterministic core.
-4. If later work exposes an evidence gap, the human must explicitly reopen research and preserve the new query ledger.
+4. If later work exposes an evidence gap, preserve the new query ledger. In minimal mode, reopen autonomously when the gap stays within the approved brief and privacy boundary; stop only if an exception changes scope, privacy, rights, or interpretation.
 
 ## Research plan
 
@@ -65,8 +65,8 @@ Write selected sources to `source-map.yaml`; preserve rejected candidates and re
 
 Use approved seed papers. Keep depth bounded, normally one level. Search both references and citing works where useful. Record the seed, direction, provider, limits, and date.
 
-## Human gate
+## Approval behavior
 
-Stop after producing the source shortlist. Ask the author to approve `source-map.yaml` before full-text extraction or outlining.
+In minimal mode, validate the source shortlist, document exclusions and coverage gaps, then continue to evidence work without routine author approval. Stop only for a mandatory exception, and batch all source-selection questions into one decision request. In stage-gated mode, ask the author to approve `source-map.yaml` before full-text extraction or outlining.
 
 See the project skill's [evidence policy](../academic-book-project/references/evidence-policy.md).

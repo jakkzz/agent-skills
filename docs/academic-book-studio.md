@@ -1,6 +1,6 @@
 # Academic Book Studio
 
-Academic Book Studio is a private, local-first Pi package for producing source-grounded academic books through reproducible research, explicit evidence mapping, versioned chapter drafts, independent review, and human approval gates.
+Academic Book Studio is a private, local-first Pi package for producing source-grounded academic books through reproducible research, explicit evidence mapping, versioned chapter drafts, independent review, and minimal human approval by default.
 
 ## Components
 
@@ -58,7 +58,7 @@ brief
 → final
 ```
 
-`/chapter-approve` records the canonical artifact's SHA-256 plus predecessor approval signatures. The review gate additionally hashes every independent factual, subject, structure, pedagogy, style, integrity, and cross-chapter report; missing, scaffolded, or later-edited reports stale the review chain. `/chapter-next` only permits the immediate next phase and refuses missing or stale approvals. `/chapter-reopen` returns to an earlier phase when evidence or author decisions change; the target and downstream gates then require renewed approvals. Approval and reopening require human UI confirmation; no model-callable approval tool exists.
+The default `minimal` approval mode asks for only two chapter-phase approvals: the brief mandate and the complete final packet. Intermediate phases still run in order and refuse scaffolded, unresolved, or incomplete artifacts, but may advance under the mandate without routine approval prompts. Human evidence/claim decisions are consolidated into one packet instead of requested record by record. Final approval is bound to a manifest containing every canonical phase artifact and all seven independent review reports, so any later packet change makes it stale. Mandatory exception stops remain for scope, privacy, rights, disputed evidence, ethics, author expertise, waivers, and blocking findings. `stage-gated` mode preserves approval at every phase. Approval and reopening require human UI confirmation; no model-callable approval tool exists.
 
 ## Research backends
 
@@ -83,7 +83,7 @@ SEMANTIC_SCHOLAR_API_KEY
 
 Searches save both a normalized JSONL result and a query ledger under `research/searches/`. Each invocation receives an immutable UUID-backed operation ID. Provider failures are recorded instead of silently discarded. Results are deduplicated by DOI, then normalized title and year.
 
-External search is blocked while `privacy_mode` is `local-only`. The chapter must reach `source-selection`, and its research-plan approval and predecessor chain must remain current.
+External search is blocked while `privacy_mode` is `local-only`. The chapter must reach `source-selection`. Minimal mode requires a current brief mandate and hashes the completed research plan into each search ledger; stage-gated mode requires the research-plan approval chain to remain current.
 
 Install the reviewed optional Findpapers adapter from `academic-book-core/`:
 
@@ -109,7 +109,7 @@ The core reads but does not mutate Zotero. `bib-validate` reports malformed entr
 
 ## Source evidence
 
-`/source-import <path>` copies a private source into `research/sources/<source-id>/source-private.<ext>`, records its SHA-256 and rights-review state, and creates empty evidence artifacts. The whole `research/sources/` directory is ignored by default because metadata, filenames, quotations, and evidence can all be sensitive. A human may narrow that ignore rule after a privacy and rights review.
+`/source-import <path>` copies a private source into `research/sources/<source-id>/source-private.<ext>`, records its SHA-256 and rights-review state, and creates empty evidence artifacts. The whole `research/sources/` directory is ignored by default because metadata, filenames, quotations, and evidence can all be sensitive. A human may narrow that ignore rule after a privacy and rights review. Minimal approval never delegates private external processing or permission waivers.
 
 Import establishes only `full-text-local-unreviewed` availability. It does not make the source claim-usable. `/evidence-approve <source-id>` records a human-reviewed quotation or faithful paraphrase, locator, relation, reviewer, evidence level, and source-content hash in `evidence.jsonl`. Final validation requires the managed source file to exist, match its SHA-256 metadata, and match every dependent evidence record.
 
@@ -141,7 +141,7 @@ A valid DOI establishes identity only. Abstract verification is not full-text ve
 
 ## Review and revision
 
-Independent review files cover factual/citation, subject matter, structure, pedagogy, style/voice, academic integrity, and cross-chapter consistency. Reviewers write findings but do not edit drafts. The consolidated revision plan preserves reviewer disagreement and requires human decisions before revision.
+Independent review files cover factual/citation, subject matter, structure, pedagogy, style/voice, academic integrity, and cross-chapter consistency. Reviewers write findings but do not edit drafts. The consolidated revision plan preserves reviewer disagreement. In minimal mode, objective within-brief corrections may proceed under delegation while subjective, scope-changing, disputed, rights, ethical, waiver, author-expertise, and blocking-finding decisions are batched for the human. Stage-gated mode requires human decisions before revision.
 
 ## Export
 

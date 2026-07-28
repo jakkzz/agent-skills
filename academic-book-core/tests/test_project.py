@@ -3,9 +3,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from helpers import advance_to
+
 from academic_book.evidence import validate_evidence
 from academic_book.io import BookError
 from academic_book.project import (
+    PHASES,
     approval_status,
     approve,
     init_project,
@@ -15,14 +18,19 @@ from academic_book.project import (
     validate_project,
 )
 from academic_book.sources import import_source
-from helpers import advance_to
 
 
 class ProjectTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name) / "book"
-        init_project(self.root, "Test Book", "Education", "Graduate students")
+        init_project(
+            self.root,
+            "Test Book",
+            "Education",
+            "Graduate students",
+            approval_mode="stage-gated",
+        )
 
     def tearDown(self):
         self.temp.cleanup()
@@ -44,7 +52,13 @@ class ProjectTests(unittest.TestCase):
         original = target / ".gitignore"
         original.write_text("keep-me\n")
         with self.assertRaisesRegex(BookError, "new or empty"):
-            init_project(target, "Unsafe", "Field", "Readers")
+            init_project(
+                target,
+                "Unsafe",
+                "Field",
+                "Readers",
+                approval_mode="stage-gated",
+            )
         self.assertEqual(original.read_text(), "keep-me\n")
 
     def test_scaffold_artifact_cannot_be_approved(self):
@@ -108,6 +122,54 @@ class ProjectTests(unittest.TestCase):
         approve(self.root, "chapter-01", "brief", "Human")
         with self.assertRaisesRegex(BookError, "Only the next phase"):
             transition(self.root, "chapter-01", "outline")
+
+    def test_minimal_mode_uses_brief_mandate_and_final_packet_approval(self):
+        root = Path(self.temp.name) / "minimal-book"
+        init_project(root, "Minimal", "Education", "Readers")
+        state = json.loads((root / "BOOK_STATE.yaml").read_text())
+        self.assertEqual(state["approval_mode"], "minimal")
+        chapter = root / "chapters/chapter-01"
+        (chapter / "brief.md").write_text("# Approved chapter mandate\n")
+        approve(root, "chapter-01", "brief", "Human")
+        transition(root, "chapter-01", "research-plan")
+
+        for phase in PHASES[1:-1]:
+            current = status(root)
+            self.assertEqual(current["chapter_phase"], phase)
+            artifact = root / current["current_artifact"]
+            if phase == "source-selection":
+                artifact.write_text(
+                    '{"schema_version":1,"chapter":"chapter-01",'
+                    '"sources":[{"source_id":"fixture"}]}\n'
+                )
+            else:
+                artifact.write_text(f"# Completed {phase}\n")
+            if phase == "review":
+                for review in (chapter / "reviews").glob("*.md"):
+                    review.write_text(f"# Completed {review.stem}\n")
+            with self.assertRaisesRegex(BookError, "not required"):
+                approve(root, "chapter-01", phase, "Human")
+            transition(root, "chapter-01", current["next_phase"])
+
+        (chapter / "final.md").write_text("# Final chapter\n")
+        record = approve(root, "chapter-01", "final", "Human")
+        self.assertIn("artifact_manifest", record)
+        self.assertEqual(status(root)["book_phase"], "complete")
+
+        (chapter / "outline.md").write_text("# Changed outline\n")
+        final_status = approval_status(root, "chapter-01", "final")
+        self.assertEqual(final_status["status"], "stale")
+        self.assertIn("manifest-artifact-changed", final_status["reason"])
+
+    def test_minimal_mode_refuses_incomplete_delegated_transition(self):
+        root = Path(self.temp.name) / "minimal-incomplete"
+        init_project(root, "Minimal", "Education", "Readers")
+        chapter = root / "chapters/chapter-01"
+        (chapter / "brief.md").write_text("# Approved chapter mandate\n")
+        approve(root, "chapter-01", "brief", "Human")
+        transition(root, "chapter-01", "research-plan")
+        with self.assertRaisesRegex(BookError, "not ready"):
+            transition(root, "chapter-01", "source-selection")
 
     def test_runtime_validation_enforces_version_and_privacy_contract(self):
         path = self.root / "BOOK_STATE.yaml"

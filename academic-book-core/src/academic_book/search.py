@@ -14,7 +14,13 @@ from typing import Any
 
 from .bibliography import normalize_doi
 from .io import BookError, load_json, save_json, slugify, utc_now, write_jsonl
-from .project import PHASES, approval_status, load_chapter
+from .project import (
+    PHASES,
+    approval_mode,
+    approval_status,
+    artifact_readiness,
+    load_chapter,
+)
 
 USER_AGENT = "JakkritAcademicBookStudio/0.1 (scholarly research; contact via local configuration)"
 JsonFetcher = Callable[[str, dict[str, str]], dict[str, Any]]
@@ -354,8 +360,20 @@ def search(
         raise BookError(
             "Scholarly search requires the chapter to reach source-selection"
         )
+    mode = approval_mode(root)
     plan_approval = approval_status(root, chapter, "research-plan")
-    if plan_approval.get("status") != "approved":
+    if mode == "minimal":
+        mandate = approval_status(root, chapter, "brief")
+        if mandate.get("status") != "approved":
+            raise BookError(
+                f"Chapter brief mandate is not currently approved: {mandate.get('status')}"
+            )
+        plan_readiness = artifact_readiness(root, chapter, "research-plan")
+        if plan_readiness.get("status") != "ready":
+            raise BookError(
+                f"Research plan is not ready: {plan_readiness.get('reason')}"
+            )
+    elif plan_approval.get("status") != "approved":
         raise BookError(
             f"Research plan is not currently approved: {plan_approval.get('status')}"
         )
@@ -394,7 +412,17 @@ def search(
         "retrieved_at": utc_now(),
         "operation_id": operation_id,
         "privacy_mode": privacy_mode,
-        "research_plan_approval_revision": plan_approval["record"].get("revision"),
+        "approval_mode": mode,
+        "research_plan_approval_revision": (
+            plan_approval["record"].get("revision")
+            if plan_approval.get("status") == "approved"
+            else None
+        ),
+        "research_plan_sha256": (
+            plan_readiness.get("sha256")
+            if mode == "minimal"
+            else plan_approval["record"].get("sha256")
+        ),
         "raw_records": len(records),
         "deduplicated_records": len(normalized),
         "errors": errors,

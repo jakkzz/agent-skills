@@ -9,7 +9,7 @@ python3 "$SKILL_DIR/../../scripts/bookctl.py" --json --root <book> <command>
 ## Project and gates
 
 ```text
-init --title --field --audience [--book-type] [--citation-style] [--chapter-title] [--formats] [--privacy-mode]
+init --title --field --audience [--book-type] [--citation-style] [--chapter-title] [--formats] [--privacy-mode] [--approval-mode minimal|stage-gated]
 chapter-create --title [--chapter]
 status [--chapter]
 approve --chapter --gate --approved-by [--notes]
@@ -19,7 +19,7 @@ validate [--workspace-only] [--write-report]
 adapter-status
 ```
 
-Only a human-facing command should invoke `approve`. Never call it autonomously.
+Only a human-facing command should invoke `approve`. Never call it autonomously. In `minimal` mode, `approve` is valid only at `brief` and `final`; the agent may invoke `transition` for complete intermediate artifacts. `stage-gated` preserves the legacy approval requirement at every phase.
 
 ## Research and sources
 

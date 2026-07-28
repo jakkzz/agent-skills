@@ -1,6 +1,6 @@
 [project]
 name = "jakkrit-academic-book-core"
-version = "0.1.0"
+version = "0.2.0"
 description = "Deterministic state, evidence, citation, and export core for Academic Book Studio"
 requires-python = ">=3.11"
 license = {text = "Private"}

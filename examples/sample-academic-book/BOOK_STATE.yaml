@@ -16,6 +16,7 @@
     "markdown"
   ],
   "privacy_mode": "local-only",
+  "approval_mode": "minimal",
   "created_at": "2026-07-24T04:52:31Z",
   "updated_at": "2026-07-24T05:54:20Z"
 }

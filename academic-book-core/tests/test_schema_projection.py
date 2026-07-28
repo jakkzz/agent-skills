@@ -5,6 +5,7 @@ from pathlib import Path
 
 from academic_book.evidence import EVIDENCE_LEVELS, EVIDENCE_RELATIONS
 from academic_book.project import (
+    APPROVAL_MODES,
     BOOK_PHASES,
     OUTPUT_FORMATS,
     PHASES,
@@ -29,6 +30,9 @@ class SchemaProjectionTests(unittest.TestCase):
         self.assertEqual(chapter["properties"]["phase"]["enum"], PHASES)
         self.assertEqual(set(book["properties"]["phase"]["enum"]), BOOK_PHASES)
         self.assertEqual(set(book["properties"]["privacy_mode"]["enum"]), PRIVACY_MODES)
+        self.assertEqual(
+            set(book["properties"]["approval_mode"]["enum"]), APPROVAL_MODES
+        )
         self.assertEqual(
             set(book["properties"]["output_formats"]["items"]["enum"]), OUTPUT_FORMATS
         )

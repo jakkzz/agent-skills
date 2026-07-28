@@ -88,7 +88,7 @@ async function refreshStatus(pi: ExtensionAPI, ctx: any, cwd = ctx.cwd) {
   try {
     const payload = await runBookctl(pi, cwd, ["status"], undefined, root);
     const status = payload.result || {};
-    const gate = status.current_gate === "approved" ? "✓" : status.current_gate === "stale" ? "!" : "○";
+    const gate = status.current_gate === "approved" ? "✓" : status.current_gate === "delegated-ready" ? "→" : status.current_gate === "stale" ? "!" : "○";
     if (ctx.hasUI) {
       ctx.ui.setStatus(
         "academic-book",
@@ -113,7 +113,7 @@ export default function academicBookStudio(pi: ExtensionAPI) {
     description: "Read the current Academic Book Studio project and chapter phase, approval gate, source counts, claims, and unresolved markers. Does not modify files.",
     promptSnippet: "Inspect persistent academic-book and chapter workflow state",
     promptGuidelines: [
-      "Use book_status before academic-book research, outlining, drafting, review, or finalization so the current human approval gate is respected.",
+      "Use book_status before academic-book work; respect approval_mode, brief/final human gates, and mandatory exception stops.",
     ],
     parameters: Type.Object({
       root: Type.Optional(Type.String({ description: "Book root or any path inside it; defaults to current directory" })),
@@ -145,7 +145,7 @@ export default function academicBookStudio(pi: ExtensionAPI) {
     description: "Search OpenAlex, Crossref, Semantic Scholar, or the optional pinned Findpapers adapter. Saves a reproducible query ledger and normalized deduplicated JSONL. Metadata and abstracts are discovery evidence, not proof of full-text claim support. Output is truncated at Pi's normal limits.",
     promptSnippet: "Search scholarly metadata providers with a reproducible query ledger",
     promptGuidelines: [
-      "Use academic_search only after an approved research plan, vary queries across perspectives, and never treat metadata, citation counts, snippets, or abstracts as full-text proof.",
+      "Use academic_search only after the workflow authorizes a completed research plan, vary queries across perspectives, and never treat metadata, citation counts, snippets, or abstracts as full-text proof.",
     ],
     parameters: Type.Object({
       query: Type.String({ minLength: 2, description: "Scholarly search query" }),
@@ -267,7 +267,7 @@ export default function academicBookStudio(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("book-init", {
-    description: "Initialize a human-gated academic-book workspace",
+    description: "Initialize an academic-book workspace with minimal or stage-gated approval",
     handler: async (args, ctx) => {
       if (!ctx.hasUI) {
         message(ctx, "book-init requires interactive UI", "error");
@@ -289,6 +289,8 @@ export default function academicBookStudio(pi: ExtensionAPI) {
       if (!formats) return;
       const privacy = await ctx.ui.select("Source privacy mode", ["local-only", "approved-apis", "cloud-processing-allowed"]);
       if (!privacy) return;
+      const approvalMode = await ctx.ui.select("Human approval frequency", ["minimal", "stage-gated"]);
+      if (!approvalMode) return;
       const target = args.trim() ? resolve(ctx.cwd, args.trim()) : ctx.cwd;
       try {
         const payload = await runBookctl(
@@ -312,6 +314,8 @@ export default function academicBookStudio(pi: ExtensionAPI) {
             formats,
             "--privacy-mode",
             privacy,
+            "--approval-mode",
+            approvalMode,
           ],
           undefined,
           target,
@@ -368,6 +372,9 @@ export default function academicBookStudio(pi: ExtensionAPI) {
         const chapter = parsed.chapter || current.chapter;
         const gate = current.chapter_phase;
         if (!chapter || !gate) throw new Error("Unable to determine chapter and current gate");
+        if (current.approval_mode === "minimal" && !["brief", "final"].includes(gate)) {
+          throw new Error(`No human approval is required at ${gate} in minimal mode; continue the delegated workflow`);
+        }
         if (parsed.gate && parsed.gate !== gate) {
           throw new Error(`Only the current gate may be approved: ${gate}`);
         }
@@ -394,7 +401,7 @@ export default function academicBookStudio(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("chapter-next", {
-    description: "Move a chapter to its next phase after approval: /chapter-next [chapter]",
+    description: "Move a chapter to its next complete/approved phase: /chapter-next [chapter]",
     handler: async (args, ctx) => {
       if (!ctx.hasUI) {
         message(ctx, "chapter-next requires interactive human confirmation", "error");
@@ -432,7 +439,7 @@ export default function academicBookStudio(pi: ExtensionAPI) {
         if (!target) return;
         const confirmed = await ctx.ui.confirm(
           "Reopen academic chapter?",
-          `${current.chapter}: ${current.chapter_phase} → ${target}\nThe target and all downstream gates require renewed human approval.`,
+          `${current.chapter}: ${current.chapter_phase} → ${target}\nFinal approval must be renewed; minimal mode keeps the brief mandate unless its artifact changes.`,
         );
         if (!confirmed) return;
         await runBookctl(pi, ctx.cwd, ["reopen", "--chapter", current.chapter, "--to", target], ctx.signal);

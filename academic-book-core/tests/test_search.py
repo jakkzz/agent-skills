@@ -2,10 +2,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from academic_book.io import BookError
-from academic_book.project import init_project
-from academic_book.search import adapter_status, search
 from helpers import prepare_search
+
+from academic_book.io import BookError
+from academic_book.project import approve, init_project, transition
+from academic_book.search import adapter_status, search
 
 
 class SearchTests(unittest.TestCase):
@@ -18,6 +19,7 @@ class SearchTests(unittest.TestCase):
             "Education",
             "Graduate students",
             privacy_mode="approved-apis",
+            approval_mode="stage-gated",
         )
         prepare_search(self.root)
 
@@ -97,7 +99,12 @@ class SearchTests(unittest.TestCase):
     def test_local_only_blocks_external_search(self):
         private_root = Path(self.temp.name) / "private-book"
         init_project(
-            private_root, "Private", "Field", "Reader", privacy_mode="local-only"
+            private_root,
+            "Private",
+            "Field",
+            "Reader",
+            privacy_mode="local-only",
+            approval_mode="stage-gated",
         )
         prepare_search(private_root)
         with self.assertRaisesRegex(BookError, "privacy_mode=local-only"):
@@ -108,12 +115,44 @@ class SearchTests(unittest.TestCase):
     def test_unapproved_research_plan_blocks_search(self):
         early_root = Path(self.temp.name) / "early-book"
         init_project(
-            early_root, "Early", "Field", "Reader", privacy_mode="approved-apis"
+            early_root,
+            "Early",
+            "Field",
+            "Reader",
+            privacy_mode="approved-apis",
+            approval_mode="stage-gated",
         )
         with self.assertRaisesRegex(BookError, "source-selection"):
             search(
                 early_root, "chapter-01", "query", ["openalex"], fetcher=self.fetcher
             )
+
+    def test_minimal_mode_search_uses_brief_mandate_and_plan_hash(self):
+        root = Path(self.temp.name) / "minimal-search"
+        init_project(
+            root,
+            "Minimal",
+            "Field",
+            "Reader",
+            privacy_mode="approved-apis",
+        )
+        chapter = root / "chapters/chapter-01"
+        (chapter / "brief.md").write_text("# Approved mandate\n")
+        approve(root, "chapter-01", "brief", "Human")
+        transition(root, "chapter-01", "research-plan")
+        (chapter / "research-plan.md").write_text("# Complete research plan\n")
+        transition(root, "chapter-01", "source-selection")
+        result = search(
+            root,
+            "chapter-01",
+            "academic evidence",
+            ["openalex"],
+            limit=5,
+            fetcher=self.fetcher,
+        )
+        self.assertEqual(result["approval_mode"], "minimal")
+        self.assertIsNone(result["research_plan_approval_revision"])
+        self.assertEqual(len(result["research_plan_sha256"]), 64)
 
     def test_adapter_status_is_machine_readable(self):
         result = adapter_status()

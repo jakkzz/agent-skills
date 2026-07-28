@@ -27,7 +27,7 @@ Run independently where possible:
 6. **Academic integrity** — unattributed paraphrase, quotation and locator problems, fabricated or mismatched references, rights warnings.
 7. **Cross chapter** — duplicate explanations, changed definitions or notation, contradictions, broken references, style drift.
 
-Every finding must include ID, severity, exact location or quote, problem, evidence/rationale, and recommendation. An unanchored complaint is not actionable evidence. The review gate hashes all seven reports plus `consolidated.md`; none may remain scaffolded or be edited after approval without reopening review.
+Every finding must include ID, severity, exact location or quote, problem, evidence/rationale, and recommendation. An unanchored complaint is not actionable evidence. All seven reports plus `consolidated.md` enter the final packet manifest; none may remain scaffolded, and any post-approval edit stales final readiness.
 
 ## Consolidation
 
@@ -39,7 +39,7 @@ Write `reviews/consolidated.md` and `revision-plan.md`. Deduplicate overlapping 
 - consequences of not changing it
 - human decision field
 
-Stop. The human—not the reviewers or consolidator—decides which changes to accept.
+In minimal mode, classify objective evidence/citation/consistency corrections as delegated fixes and apply them within the approved brief; collect subjective, scope-changing, disputed, rights, ethics, waiver, author-expertise, and blocking-finding choices into one human decision packet. Never infer a human choice. In stage-gated mode, stop for a decision on every proposed change.
 
 ## Final verification
 
@@ -54,6 +54,6 @@ After revision, verify without rewriting:
 - stale approvals are absent
 - rights and privacy warnings are resolved or explicitly retained
 
-Run the comprehensive `bookctl validate` readiness gate, which includes project, bibliography, structured evidence, claims, and cross-book consistency. Record evidence in `final-verification.md`; stop for human approval.
+Run the comprehensive `bookctl validate` readiness gate, which includes project, bibliography, structured evidence, claims, and cross-book consistency. Record evidence in `final-verification.md`; stop for the final human packet approval. Do not request a separate verification approval in minimal mode.
 
 Read [review roles](../academic-book-project/references/review-roles.md) for report contracts.

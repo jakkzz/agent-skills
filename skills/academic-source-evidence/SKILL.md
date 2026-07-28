@@ -46,13 +46,15 @@ A search snippet or abstract cannot establish a strong full-paper conclusion. A 
 
 ## Human-reviewed evidence records
 
-Importing a full text establishes local availability, not claim support. A human must record the reviewed passage or paraphrase before a claim can use it:
+Importing a full text establishes local availability, not claim support. In minimal mode, prepare one consolidated evidence-and-claim review packet for the chapter instead of interrupting for every passage. The author may explicitly approve the packet as a batch; only then may the agent materialize exactly those approved records using the named human reviewer. Any rejected, modified, disputed, illegible, rights-sensitive, or author-expertise item remains excluded or returns as one batched exception. Stage-gated mode may retain record-by-record review.
+
+A reviewed passage or paraphrase is recorded with:
 
 ```text
 /evidence-approve <source-id>
 ```
 
-CLI equivalent, for explicit human invocation only:
+CLI equivalent, for explicit human invocation or exact execution of an explicitly approved batch only:
 
 ```bash
 python3 "$SKILL_DIR/../../scripts/bookctl.py" --json --root <book> evidence-add \
@@ -73,7 +75,7 @@ python3 "$SKILL_DIR/../../scripts/bookctl.py" --json --root <book> claim-add \
   --evidence-level full-text --locator 'p. 14, Results, para. 3'
 ```
 
-The claim remains pending until the human runs `/claim-review <claim-id>` or explicitly invokes `bookctl claim-review`. The decision is hash-bound to the claim and referenced evidence snapshots; later edits require another review. Claims marked `contradicted` or `unverifiable` block final readiness. For disagreement, use evidence relations `supports`, `contradicts`, `qualifies`, or `contextualizes`, qualify the chapter prose, and review the resulting claim as `partial` or `disputed` with explanatory notes.
+The claim remains pending until the human reviews it individually or as part of an explicit consolidated batch. The agent must not infer batch approval from silence, a brief mandate, or a request to continue. Each resulting decision is hash-bound to the claim and evidence snapshots; later edits require renewed review. Claims marked `contradicted` or `unverifiable` block final readiness. For disagreement, use evidence relations `supports`, `contradicts`, `qualifies`, or `contextualizes`, qualify the prose, and review the resulting claim as `partial` or `disputed` with explanatory notes.
 
 ## Verification
 
