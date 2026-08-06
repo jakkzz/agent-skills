@@ -1,0 +1,29 @@
+[project]
+name = "academic-book-core"
+version = "0.2.1"
+description = "Deterministic state, evidence, citation, and export core for Academic Book Studio"
+requires-python = ">=3.11"
+license = {text = "Private"}
+dependencies = []
+
+[project.optional-dependencies]
+findpapers = [
+  "findpapers @ git+https://github.com/jonatasgrosman/findpapers.git@e0916d049fdcf5c1d5bc75abc6f85d7ce360d21a"
+]
+paperqa = ["paper-qa==2026.3.18"]
+
+[project.scripts]
+bookctl = "academic_book.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/academic_book"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

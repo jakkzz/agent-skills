@@ -1,0 +1,1 @@
+A short sample source used only by the Academic Book Studio fixture.

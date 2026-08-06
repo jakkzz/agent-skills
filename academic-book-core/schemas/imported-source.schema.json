@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.local/academic-book/imported-source.schema.json",
+  "title": "Private Imported Source Metadata",
+  "type": "object",
+  "required": ["schema_version", "source_id", "title", "source_type", "content_hash", "acquisition", "rights", "source_availability", "evidence_level"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "source_id": {"type": "string", "minLength": 1},
+    "citation_key": {"type": ["string", "null"]},
+    "title": {"type": "string", "minLength": 1},
+    "source_type": {"type": "string"},
+    "content_hash": {"pattern": "^sha256:[a-f0-9]{64}$"},
+    "source_availability": {"const": "full-text-local-unreviewed"},
+    "evidence_level": {"const": "metadata-only"},
+    "acquisition": {"type": "object"},
+    "rights": {"type": "object"}
+  },
+  "additionalProperties": true
+}

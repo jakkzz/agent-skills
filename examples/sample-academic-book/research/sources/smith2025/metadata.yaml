@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "source_id": "smith2025",
+  "citation_key": "Smith2025",
+  "title": "academic-book-sample-source",
+  "source_type": "txt",
+  "content_hash": "sha256:01e13bad19d0b7d5faa754cfb7ac792763d76c2ef595e7f4bab0ab3d19a7041b",
+  "acquisition": {
+    "method": "author-provided",
+    "date": "2026-07-24T04:52:31Z"
+  },
+  "rights": {
+    "full_text_private": true,
+    "quotation_permission": "review-required"
+  },
+  "source_availability": "full-text-local-unreviewed",
+  "evidence_level": "metadata-only"
+}

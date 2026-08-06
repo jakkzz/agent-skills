@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.local/academic-book/chapter-state.schema.json",
+  "title": "Academic Book Chapter State",
+  "type": "object",
+  "required": ["schema_version", "chapter", "number", "title", "phase", "artifacts"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "chapter": {"pattern": "^chapter-[a-z0-9-]+$"},
+    "number": {"type": "integer", "minimum": 1},
+    "title": {"type": "string", "minLength": 1},
+    "phase": {"enum": ["brief", "research-plan", "source-selection", "outline", "sample", "draft-v1", "review", "revision-plan", "draft-v2", "verification", "final"]},
+    "artifacts": {"type": "object", "additionalProperties": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

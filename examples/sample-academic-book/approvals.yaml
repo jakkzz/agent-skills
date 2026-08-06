@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "approvals": [
+    {
+      "chapter": "chapter-01",
+      "gate": "brief",
+      "artifact": "chapters/chapter-01/brief.md",
+      "sha256": "319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+      "revision": 1,
+      "predecessors": {},
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:22Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "research-plan",
+      "artifact": "chapters/chapter-01/research-plan.md",
+      "sha256": "9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+      "revision": 2,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:22Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "source-selection",
+      "artifact": "chapters/chapter-01/source-map.yaml",
+      "sha256": "0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+      "revision": 3,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:22Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "outline",
+      "artifact": "chapters/chapter-01/outline.md",
+      "sha256": "aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+      "revision": 4,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:22Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "sample",
+      "artifact": "chapters/chapter-01/sample.md",
+      "sha256": "b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+      "revision": 5,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:23Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "draft-v1",
+      "artifact": "chapters/chapter-01/draft-v1.md",
+      "sha256": "9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+      "revision": 6,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:23Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "review",
+      "artifact": "chapters/chapter-01/reviews/consolidated.md",
+      "sha256": "af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+      "revision": 7,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:23Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "revision-plan",
+      "artifact": "chapters/chapter-01/revision-plan.md",
+      "sha256": "4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+      "revision": 8,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r7:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:23Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "draft-v2",
+      "artifact": "chapters/chapter-01/draft-v2.md",
+      "sha256": "60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8",
+      "revision": 9,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r7:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r8:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:24Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "verification",
+      "artifact": "chapters/chapter-01/final-verification.md",
+      "sha256": "af3b6aafbeed193e2c96d6ce73f66cc805352d2ff16ee24203be7f01a4798106",
+      "revision": 10,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r7:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r8:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+        "draft-v2": "r9:60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:24Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "final",
+      "artifact": "chapters/chapter-01/final.md",
+      "sha256": "9a362445b32c62e3c9fb43d0d22d3383b4bcb819c35731755f77e15d18f4dcf6",
+      "revision": 11,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r7:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r8:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+        "draft-v2": "r9:60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8",
+        "verification": "r10:af3b6aafbeed193e2c96d6ce73f66cc805352d2ff16ee24203be7f01a4798106"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:21:25Z",
+      "notes": "Reviewed sample fixture"
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "verification",
+      "artifact": "chapters/chapter-01/final-verification.md",
+      "sha256": "002fbfd44b0246f08d1c6d94a60b11992c39e3cdc9c37f773a4cca2281551469",
+      "revision": 12,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r7:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r8:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+        "draft-v2": "r9:60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:43:56Z",
+      "notes": "Reverified source and claim digests."
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "final",
+      "artifact": "chapters/chapter-01/final.md",
+      "sha256": "9a362445b32c62e3c9fb43d0d22d3383b4bcb819c35731755f77e15d18f4dcf6",
+      "revision": 13,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r7:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r8:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+        "draft-v2": "r9:60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8",
+        "verification": "r12:002fbfd44b0246f08d1c6d94a60b11992c39e3cdc9c37f773a4cca2281551469"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:43:58Z",
+      "notes": "Final sample fixture approved after re-verification."
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "review",
+      "artifact": "chapters/chapter-01/reviews/consolidated.md",
+      "sha256": "af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+      "revision": 14,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420"
+      },
+      "supporting_artifacts": {
+        "chapters/chapter-01/reviews/factual.md": "1e64fa21d2f367e165717a12e45da45d8bfba52eb99a3b84ffa055794a1c03cb",
+        "chapters/chapter-01/reviews/subject.md": "26539039592e3ff7326a39651669635cbcb562bb1e781a572a1b53856955cf58",
+        "chapters/chapter-01/reviews/structure.md": "fcbd1c71cca748a12b8bdc9e798c4faf3d336ce801c721537ae79f48b77e832b",
+        "chapters/chapter-01/reviews/pedagogy.md": "eca7a8d6423b6c210742c6144c5059a5f4ad6f46bc388e507b3e05108d2dc883",
+        "chapters/chapter-01/reviews/style.md": "a75f9ff4b8bf3e90271416b39393eda5480f4269e4059461adf9ccfa2d3a2de6",
+        "chapters/chapter-01/reviews/integrity.md": "1fa570c0e6920038ddb069945f07f02c543b8cec9fd88ea18c434703fd6a15ae",
+        "chapters/chapter-01/reviews/cross-chapter.md": "8b0d199bc0f50b4284a225f91523903a6d1d7012c04ba1ac99f2debfa8cf3949"
+      },
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:54:16Z",
+      "notes": "Reviewed sample fixture after independent review binding."
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "revision-plan",
+      "artifact": "chapters/chapter-01/revision-plan.md",
+      "sha256": "4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+      "revision": 15,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r14:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336"
+      },
+      "supporting_artifacts": {},
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:54:17Z",
+      "notes": "Reviewed sample fixture after independent review binding."
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "draft-v2",
+      "artifact": "chapters/chapter-01/draft-v2.md",
+      "sha256": "60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8",
+      "revision": 16,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r14:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r15:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956"
+      },
+      "supporting_artifacts": {},
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:54:17Z",
+      "notes": "Reviewed sample fixture after independent review binding."
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "verification",
+      "artifact": "chapters/chapter-01/final-verification.md",
+      "sha256": "002fbfd44b0246f08d1c6d94a60b11992c39e3cdc9c37f773a4cca2281551469",
+      "revision": 17,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r14:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r15:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+        "draft-v2": "r16:60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8"
+      },
+      "supporting_artifacts": {},
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:54:18Z",
+      "notes": "Reviewed sample fixture after independent review binding."
+    },
+    {
+      "chapter": "chapter-01",
+      "gate": "final",
+      "artifact": "chapters/chapter-01/final.md",
+      "sha256": "9a362445b32c62e3c9fb43d0d22d3383b4bcb819c35731755f77e15d18f4dcf6",
+      "revision": 18,
+      "predecessors": {
+        "brief": "r1:319bf332d66894cb21cd6bd7dcd9f167583e99f3d2c09c674b9d2071a312b3bf",
+        "research-plan": "r2:9f958fe2bd0f38fe08a3a031f7b0cd8dbaa6f394f77abd6ae04448bb6205583f",
+        "source-selection": "r3:0080377e0b8e1e865cf7ceaced0dc19df88694ed8efeed6ea6f01c5cb96f26ca",
+        "outline": "r4:aad38627dc928907b96e995631444d667e836213700f4c257468a438e09aa882",
+        "sample": "r5:b30ac6a672702645d1a92f91772cafbdab4319e5bdea6ef1acb616d7ec59ac1e",
+        "draft-v1": "r6:9818f89d9cd651a7f1805c37ebee43ebf6ed47181084566186047b1378e11420",
+        "review": "r14:af1cb1e22b9d496c73577c5a7e28a3c98f118f7ac4c4dc901d509bed2a215336",
+        "revision-plan": "r15:4594356ef271ecc69516fab871dea3144f0cc8a010d95c83cf90ede1f25f8956",
+        "draft-v2": "r16:60a4726fd30d6ae95c75f25afd287c0cacdf4b18ef35727cc176599d187211f8",
+        "verification": "r17:002fbfd44b0246f08d1c6d94a60b11992c39e3cdc9c37f773a4cca2281551469"
+      },
+      "supporting_artifacts": {},
+      "decision": "approved",
+      "approved_by": "Sample Author",
+      "approved_at": "2026-07-24T05:54:19Z",
+      "notes": "Reviewed sample fixture after independent review binding."
+    }
+  ]
+}

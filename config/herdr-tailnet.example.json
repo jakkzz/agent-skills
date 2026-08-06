@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hosts": [
+    {
+      "name": "workstation",
+      "sshAlias": "workstation-tail",
+      "platform": "unix"
+    },
+    {
+      "name": "linux-server",
+      "sshAlias": "linux-server-tail",
+      "platform": "unix"
+    },
+    {
+      "name": "windows-workstation",
+      "sshAlias": "windows-workstation-tail",
+      "platform": "windows"
+    }
+  ]
+}

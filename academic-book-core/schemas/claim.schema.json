@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.local/academic-book/claim.schema.json",
+  "title": "Atomic Academic Claim",
+  "type": "object",
+  "required": ["claim_id", "chapter", "section", "claim", "claim_type", "source_ids", "evidence_ids", "evidence_level", "support", "review_status"],
+  "properties": {
+    "claim_id": {"type": "string", "minLength": 1},
+    "chapter": {"pattern": "^chapter-[a-z0-9-]+$"},
+    "section": {"type": "string", "minLength": 1},
+    "claim": {"type": "string", "minLength": 1},
+    "claim_type": {"type": "string", "minLength": 1},
+    "source_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "evidence_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "citation_keys": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "evidence_level": {"enum": ["metadata-only", "search-snippet", "abstract", "full-text", "figure-or-table", "author-expertise"]},
+    "evidence_locator": {"type": ["string", "null"]},
+    "support": {"enum": ["unreviewed", "supported", "partial", "contradicted", "disputed", "unverifiable"]},
+    "review_status": {"enum": ["pending-human-review", "human-reviewed"]},
+    "review_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "additionalProperties": true
+}

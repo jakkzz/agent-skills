@@ -1,0 +1,45 @@
+{
+  "name": "agent-skills",
+  "version": "0.7.1",
+  "type": "module",
+  "description": "Portable, safety-first Agent Skills for Claude Code, Pi, OMP, and compatible coding-agent runtimes.",
+  "keywords": [
+    "agent-skills",
+    "claude-code",
+    "ai-agents",
+    "llm",
+    "pi-package",
+    "automation",
+    "devops"
+  ],
+  "scripts": {
+    "test": "bash tests/myskill-update.sh && node tests/myskill-extension.mjs && node tests/academic-book-studio.mjs && node tests/thai-editor.mjs && node --experimental-strip-types --test tests/herdr-doctor-*.test.ts"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  },
+  "omp": {
+    "skills": [
+      "./skills"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jakkzz/agent-skills.git"
+  }
+}

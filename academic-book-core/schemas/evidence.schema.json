@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.local/academic-book/evidence.schema.json",
+  "title": "Human-Reviewed Evidence Record",
+  "type": "object",
+  "required": ["evidence_id", "source_id", "source_hash", "evidence_level", "text", "relation", "review_status", "reviewed_by", "reviewed_at"],
+  "properties": {
+    "evidence_id": {"type": "string", "minLength": 1},
+    "source_id": {"type": "string", "minLength": 1},
+    "source_hash": {"pattern": "^sha256:[a-f0-9]{64}$"},
+    "evidence_level": {"enum": ["metadata-only", "search-snippet", "abstract", "full-text", "figure-or-table", "author-expertise"]},
+    "locator": {"type": ["string", "null"]},
+    "text": {"type": "string", "minLength": 1},
+    "relation": {"enum": ["supports", "contradicts", "qualifies", "contextualizes"]},
+    "review_status": {"const": "human-reviewed"},
+    "reviewed_by": {"type": "string", "minLength": 1},
+    "reviewed_at": {"type": "string"}
+  },
+  "additionalProperties": true
+}

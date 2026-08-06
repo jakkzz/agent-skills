@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.local/academic-book/search-source.schema.json",
+  "title": "Normalized Academic Search Source Record",
+  "type": "object",
+  "required": ["source_id", "title", "providers", "evidence_level", "retrieved_at"],
+  "properties": {
+    "source_id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "authors": {"type": "array", "items": {"type": "string"}},
+    "year": {"type": ["integer", "null"]},
+    "doi": {"type": ["string", "null"]},
+    "providers": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "evidence_level": {"enum": ["metadata-only", "abstract", "full-text", "figure-or-table"]},
+    "is_retracted": {"type": ["boolean", "null"]},
+    "retrieved_at": {"type": "string"}
+  },
+  "additionalProperties": true
+}

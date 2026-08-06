@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "chapter": "chapter-01",
+  "number": 1,
+  "title": "Why Evidence Traceability Matters",
+  "phase": "final",
+  "artifacts": {
+    "brief": "brief.md",
+    "research-plan": "research-plan.md",
+    "source-selection": "source-map.yaml",
+    "outline": "outline.md",
+    "sample": "sample.md",
+    "draft-v1": "draft-v1.md",
+    "review": "reviews/consolidated.md",
+    "revision-plan": "revision-plan.md",
+    "draft-v2": "draft-v2.md",
+    "verification": "final-verification.md",
+    "final": "final.md"
+  },
+  "created_at": "2026-07-24T04:52:31Z",
+  "updated_at": "2026-07-24T05:54:18Z"
+}

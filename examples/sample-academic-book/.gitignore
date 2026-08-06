@@ -1,0 +1,7 @@
+# The sample deliberately tracks synthetic evidence metadata and records.
+build/
+.env
+.env.*
+*.local
+# Synthetic source-private.txt is intentionally versioned in this example.
+research/sources/**/extracted.*
