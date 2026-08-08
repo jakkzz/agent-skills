@@ -119,11 +119,13 @@ Use one command followed by a natural-language request:
 /thai เขียนข้อความแจ้งเตือนจาก brief นี้: ...
 ```
 
-`/thai ui [scope]` gathers user-visible Thai UI occurrences and creates an ignored quickfix handoff
-under the repository Git path. With no scope it covers the complete frontend UI; a scope such as
-`attendance` limits the file set. The command returns `nvim -q <quickfix-path>` so the user edits the
-real source/i18n files manually. `/thai ui learn [scope]` reads only that handoff's changed files,
-confirms before/after pairs, and records approved examples under `thai-guide/examples/`.
+`/thai ui [scope]` gathers user-visible Thai UI text into an ignored Markdown worksheet under the
+repository Git path. With no scope it covers the complete frontend UI; a scope such as `attendance`
+limits the source set. Identical originals are grouped while source paths and keys remain in HTML
+comments. Each entry contains the original, a blank line for the user's preferred wording, and `---`.
+The command returns `nvim <worksheet-path>`. `/thai ui learn [scope]` validates completed worksheet
+pairs, asks for confirmation, and records approved examples under `thai-guide/examples/` without
+modifying product source.
 `/thai apply <scope> dry run` uses those examples to propose changes without writing files. Omitting
 `dry run` still requires a proposal and explicit approval before any write.
 
@@ -132,11 +134,10 @@ request through the normal coding agent and `thai-contextual-editor` skill, so t
 real project context and use normal tools. In a Git project, it reads `thai-guide/README.md`, relevant
 domain guidance, and approved examples under `thai-guide/` first.
 
-Manual calibration keeps the user in control: the agent gathers locations but the user writes the
-preferred wording directly in nvim. The learn step records only confirmed pairs and never modifies,
-reverts, commits, or pushes the user's source edits. Applying examples elsewhere is a separate,
-explicit request; the agent then proposes bounded changes, waits for approval, runs validation, and
-never commits or pushes unless requested.
+Manual calibration keeps the user in control: the agent gathers source context but the user writes
+preferred wording in the Markdown worksheet. The learn step records only confirmed pairs and never
+modifies product source, commits, pushes, or reverts anything. Applying examples is a separate,
+explicit request; the agent then proposes bounded changes, waits for approval, and runs validation.
 
 Running `/thai` without arguments opens one editor for the same natural-language request.
 `/skill:thai-contextual-editor <request>` routes to the same workflow.

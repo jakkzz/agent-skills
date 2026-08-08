@@ -8,8 +8,9 @@ assert.match(instructions, /manual style calibration/);
 assert.match(instructions, /`ui` or `ui <scope>`/);
 assert.match(instructions, /`ui learn \[scope\]`/);
 assert.match(instructions, /`apply <scope> dry run`/);
-assert.match(instructions, /quickfix file and matching NUL-delimited file manifest/);
-assert.match(instructions, /record only confirmed pairs under thai-guide\/examples/);
+assert.match(instructions, /editable Markdown worksheet and matching NUL-delimited source-file manifest/);
+assert.match(instructions, /original text, one blank line where the user writes the preferred wording, then `---`/);
+assert.match(instructions, /append only user-confirmed wording/);
 assert.match(instructions, /Do not run interactive nvim in the agent pane/);
 assert.match(instructions, /Do not scan or rewrite the whole repository/);
 
