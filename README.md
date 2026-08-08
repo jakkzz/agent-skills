@@ -113,26 +113,30 @@ Use one command followed by a natural-language request:
 ```text
 /thai ui
 /thai ui attendance
+/thai ui learn attendance
 /thai apply attendance dry run
 /thai ตรวจภาษาไทยใน diff นี้
 /thai เขียนข้อความแจ้งเตือนจาก brief นี้: ...
 ```
 
-`/thai ui [scope]` starts manual UI calibration. With no scope it asks which page to use before
-showing strings. `/thai apply <scope> dry run` uses approved examples to propose changes without
-writing files. Omitting `dry run` still requires a proposal and explicit approval before any write.
+`/thai ui [scope]` gathers user-visible Thai UI occurrences and creates an ignored quickfix handoff
+under the repository Git path. With no scope it covers the complete frontend UI; a scope such as
+`attendance` limits the file set. The command returns `nvim -q <quickfix-path>` so the user edits the
+real source/i18n files manually. `/thai ui learn [scope]` reads only that handoff's changed files,
+confirms before/after pairs, and records approved examples under `thai-guide/examples/`.
+`/thai apply <scope> dry run` uses those examples to propose changes without writing files. Omitting
+`dry run` still requires a proposal and explicit approval before any write.
 
 There are no mode subcommands or separate machine-local terminology profile. The command routes the
 request through the normal coding agent and `thai-contextual-editor` skill, so the agent can inspect
 real project context and use normal tools. In a Git project, it reads `thai-guide/README.md`, relevant
 domain guidance, and approved examples under `thai-guide/` first.
 
-Manual calibration keeps the user in control: the agent presents one real string with context and
-source metadata, the user writes the preferred version, and only the confirmed before/after pair is
-recorded under `thai-guide/examples/`. Calibration never changes product source and the agent does
-not invent alternatives unless asked. Applying examples is a separate, explicit request; the agent
-then proposes bounded changes, waits for approval, runs validation, and never commits or pushes
-unless requested. It does not scan or rewrite the repository unless the request asks for that scope.
+Manual calibration keeps the user in control: the agent gathers locations but the user writes the
+preferred wording directly in nvim. The learn step records only confirmed pairs and never modifies,
+reverts, commits, or pushes the user's source edits. Applying examples elsewhere is a separate,
+explicit request; the agent then proposes bounded changes, waits for approval, runs validation, and
+never commits or pushes unless requested.
 
 Running `/thai` without arguments opens one editor for the same natural-language request.
 `/skill:thai-contextual-editor <request>` routes to the same workflow.

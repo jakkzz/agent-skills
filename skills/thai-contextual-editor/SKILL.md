@@ -56,7 +56,9 @@ ICU syntax, Markdown และ HTML ไว้ตามเดิม เว้น�
 
 ใน Pi ใช้ `/thai <คำขอ>` แล้วอธิบายงานเป็นภาษาปกติ หรือใช้ shorthand ที่ตั้งใจไว้สองแบบ:
 
-- `/thai ui [ขอบเขต]` — เริ่ม manual UI calibration; หากไม่ระบุขอบเขต ให้ถามหน้าที่จะสอนก่อน
+- `/thai ui [ขอบเขต]` — รวบรวมข้อความ UI ภาษาไทยและสร้าง nvim quickfix handoff; ไม่ระบุขอบเขต
+  หมายถึง UI ทั้ง frontend
+- `/thai ui learn [ขอบเขต]` — อ่าน diff จากไฟล์ใน handoff แล้วบันทึกคู่ before/after ที่ผู้ใช้ยืนยัน
 - `/thai apply <ขอบเขต> dry run` — ใช้ตัวอย่างที่อนุมัติแล้วเสนอการแก้ แต่ห้ามเขียนไฟล์
 - `/thai apply <ขอบเขต>` — เสนอก่อนและต้องรออนุมัติชัดเจนก่อนเขียนไฟล์
 
@@ -72,21 +74,25 @@ Native Draft, Localize หรือ Audit; ให้อนุมานจาก�
 4. จำกัดขอบเขตตามคำขอ ห้าม scan หรือ rewrite ทั้ง repository อัตโนมัติ
 5. ตรวจ diff และ validation ที่เหมาะกับไฟล์ ห้าม commit หรือ push หากผู้ใช้ไม่ได้สั่ง
 
-### Manual style calibration
+### Manual style calibration with nvim
 
-เมื่อผู้ใช้ต้องการสอน ปรับ หรือสะสม style examples ให้ถือว่าผู้ใช้เป็นผู้เขียนและ Agent เป็นผู้ช่วย
-เก็บบริบท:
+ผู้ใช้เป็นผู้เขียนและ Agent เป็นผู้รวบรวมตำแหน่งกับเก็บตัวอย่าง:
 
-1. หาเฉพาะข้อความจริงในหน้าหรือขอบเขตที่ผู้ใช้ระบุ
-2. แสดงทีละข้อความ พร้อมบริบทที่ผู้ใช้เห็น ตำแหน่งไฟล์ และ key
-3. ห้ามเสนอฉบับแก้เอง เว้นแต่ผู้ใช้ขอ
-4. รอให้ผู้ใช้เขียน preferred wording หรือสั่งคงเดิม/ข้าม
-5. ทวน before/after และรอการยืนยัน
-6. บันทึกเฉพาะตัวอย่างที่ยืนยันแล้วลง `thai-guide/examples/` โดยรักษาถ้อยคำของผู้ใช้ตามเดิม
-7. ห้ามแก้ product source ในช่วง calibration
+1. `/thai ui` รวบรวมข้อความที่ผู้ใช้เห็นจริงใน frontend ทั้งหมด ส่วน `/thai ui <ขอบเขต>`
+   จำกัดเฉพาะหน้า/feature
+2. ตัด comments, tests, generated files, docs และข้อมูลที่ไม่ใช่ UI ออก เว้นแต่ผู้ใช้ขอ
+3. สร้าง quickfix (`path:line:column:text`) และ NUL-delimited file manifest ใต้ Git path
+   `thai-review/` จาก `git rev-parse --git-path` เพื่อไม่ให้เข้า worktree หรือ commit
+4. ส่ง command `nvim -q <quickfix-path>` ที่ shell-safe ให้ผู้ใช้ ห้ามเปิด interactive nvim
+   ใน pane ของ Agent และห้ามแก้ source แทนผู้ใช้
+5. ผู้ใช้แก้ source/i18n files จริงใน nvim
+6. `/thai ui learn [ขอบเขต]` อ่านเฉพาะ diff ของไฟล์ใน manifest รายงาน unrelated changes
+   และทวน before/after ให้ยืนยัน
+7. บันทึกเฉพาะคู่ที่ผู้ใช้ยืนยันลง `thai-guide/examples/` พร้อมบริบท ตำแหน่ง และ key
+   ห้ามแก้ commit push revert หรือแตะ source edits ของผู้ใช้
 
-นำ examples ไปแก้ product source ได้ต่อเมื่อผู้ใช้สั่ง Apply ชัดเจน จากนั้นเสนอ bounded changes
-และรออนุมัติก่อนเขียนไฟล์
+นำ examples ไปใช้โดย Agent ต่อเมื่อผู้ใช้สั่ง Apply ชัดเจน จากนั้นเสนอ bounded changes และรอ
+อนุมัติก่อนเขียนไฟล์
 
 เมื่อเรียก `/thai` โดยไม่มีข้อความ ให้เปิด editor เพื่อรับคำขอเดียวตามรูปแบบข้างต้น
 `/skill:thai-contextual-editor <คำขอ>` ใช้ workflow เดียวกัน ส่วน runtime ที่ไม่มี Pi extension

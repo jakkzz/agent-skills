@@ -6,9 +6,11 @@ assert.match(instructions, /thai-contextual-editor/);
 assert.match(instructions, /thai-guide\/README\.md/);
 assert.match(instructions, /manual style calibration/);
 assert.match(instructions, /`ui` or `ui <scope>`/);
+assert.match(instructions, /`ui learn \[scope\]`/);
 assert.match(instructions, /`apply <scope> dry run`/);
-assert.match(instructions, /record only the user-approved example under thai-guide\/examples/);
-assert.match(instructions, /Do not edit product source during calibration/);
+assert.match(instructions, /quickfix file and matching NUL-delimited file manifest/);
+assert.match(instructions, /record only confirmed pairs under thai-guide\/examples/);
+assert.match(instructions, /Do not run interactive nvim in the agent pane/);
 assert.match(instructions, /Do not scan or rewrite the whole repository/);
 
 let command;
@@ -30,6 +32,7 @@ thaiEditorExtension({
 
 assert.equal(command.name, "thai");
 assert.ok(command.getArgumentCompletions("u").some((item) => item.value === "ui"));
+assert.ok(command.getArgumentCompletions("ui learn").some((item) => item.value === "ui learn attendance"));
 assert.ok(command.getArgumentCompletions("apply").some((item) => item.value === "apply attendance dry run"));
 assert.equal(typeof inputHandler, "function");
 assert.equal(typeof beforeAgentStart, "function");
