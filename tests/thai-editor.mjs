@@ -5,6 +5,8 @@ const instructions = thaiWorkflowInstructions();
 assert.match(instructions, /thai-contextual-editor/);
 assert.match(instructions, /thai-guide\/README\.md/);
 assert.match(instructions, /manual style calibration/);
+assert.match(instructions, /`ui` or `ui <scope>`/);
+assert.match(instructions, /`apply <scope> dry run`/);
 assert.match(instructions, /record only the user-approved example under thai-guide\/examples/);
 assert.match(instructions, /Do not edit product source during calibration/);
 assert.match(instructions, /Do not scan or rewrite the whole repository/);
@@ -27,7 +29,8 @@ thaiEditorExtension({
 });
 
 assert.equal(command.name, "thai");
-assert.equal(command.getArgumentCompletions, undefined);
+assert.ok(command.getArgumentCompletions("u").some((item) => item.value === "ui"));
+assert.ok(command.getArgumentCompletions("apply").some((item) => item.value === "apply attendance dry run"));
 assert.equal(typeof inputHandler, "function");
 assert.equal(typeof beforeAgentStart, "function");
 assert.deepEqual(inputHandler({ text: "hello" }), { action: "continue" });

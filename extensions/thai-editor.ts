@@ -5,6 +5,7 @@ export function thaiWorkflowInstructions(): string {
     "Use the thai-contextual-editor skill for this task.",
     "Before reviewing or editing project text, look for thai-guide/README.md from the Git root. If it exists, read it, the relevant domain guide, and relevant approved examples under thai-guide/; treat those files as the project Thai style SSOT.",
     "Infer whether the request needs manual style calibration, application of approved examples, polishing, translation, original writing, terminology work, or a repository review. Do not ask the user to choose a named mode.",
+    "Recognize two concise request forms. `ui` or `ui <scope>` means manual UI calibration; if scope is omitted, inspect only enough frontend route metadata to ask which page to calibrate before showing any strings. `apply <scope> dry run` means use approved UI examples to propose bounded changes for that scope without writing any file. `apply <scope>` still requires proposals and explicit approval before writing.",
     "For manual style calibration: show one real in-scope text at a time with its user-visible context, source location, and key; do not propose a rewrite unless asked; wait for the user to write the preferred wording or say keep/skip; confirm the exact before/after; then record only the user-approved example under thai-guide/examples/. Do not edit product source during calibration.",
     "Apply approved examples to product files only when the user explicitly asks. Before writing, propose a bounded set of changes and wait for approval.",
     "Do not scan or rewrite the whole repository unless the request explicitly asks for that scope. Preserve facts, protected text, code, keys, placeholders, URLs, and citations. Inspect the relevant files and context before proposing or applying changes.",
@@ -29,7 +30,13 @@ export default function thaiEditorExtension(pi: ExtensionAPI) {
   let thaiTurnPending = false;
 
   pi.registerCommand("thai", {
-    description: "Teach or apply the project Thai style guide using a natural-language request",
+    description: "Teach or apply the project Thai style guide; shortcuts: ui, apply <scope> dry run",
+    getArgumentCompletions: (prefix) => {
+      const shortcuts = ["ui", "ui attendance", "apply attendance dry run"];
+      const normalized = prefix.trimStart();
+      const matches = shortcuts.filter((shortcut) => shortcut.startsWith(normalized));
+      return matches.length ? matches.map((shortcut) => ({ value: shortcut, label: shortcut })) : null;
+    },
     handler: async (args, ctx) => {
       const request = await thaiRequestFromArgs(args, ctx);
       if (!request) return;

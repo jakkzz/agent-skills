@@ -111,10 +111,16 @@ and explicitly reported partial Git updates reload Pi so runtime state cannot re
 Use one command followed by a natural-language request:
 
 ```text
+/thai ui
+/thai ui attendance
+/thai apply attendance dry run
 /thai ตรวจภาษาไทยใน diff นี้
-/thai ปรับหน้า attendance ให้สั้นลงโดยไม่เปลี่ยน i18n keys
 /thai เขียนข้อความแจ้งเตือนจาก brief นี้: ...
 ```
+
+`/thai ui [scope]` starts manual UI calibration. With no scope it asks which page to use before
+showing strings. `/thai apply <scope> dry run` uses approved examples to propose changes without
+writing files. Omitting `dry run` still requires a proposal and explicit approval before any write.
 
 There are no mode subcommands or separate machine-local terminology profile. The command routes the
 request through the normal coding agent and `thai-contextual-editor` skill, so the agent can inspect
