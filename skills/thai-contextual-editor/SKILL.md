@@ -52,22 +52,25 @@ ICU syntax, Markdown และ HTML ไว้ตามเดิม เว้น�
 - **Transcreate:** เขียนใหม่ได้มากขึ้น ใช้เมื่อผู้ใช้ขอชัดเจนเท่านั้น
 - **Audit:** ชี้ปัญหาและเสนอทางแก้โดยไม่แก้ต้นฉบับ
 
-## Pi Interactive Workflow
+## Pi Workflow
 
-ใน Pi ให้ใช้ `/thai` เป็น interface หลักของ skill นี้ ไม่ต้องเรียก skill และคำสั่งแยกกัน
-เมื่อเรียก `/thai` โดยไม่มี argument ระบบจะ:
+ใน Pi ใช้คำสั่งเดียวคือ `/thai <คำขอ>` แล้วอธิบายงานเป็นภาษาปกติ เช่น
+`/thai ตรวจภาษาไทยใน diff นี้` หรือ `/thai ปรับหน้า attendance ให้สั้นลงโดยไม่เปลี่ยน i18n keys`
+ไม่ต้องเลือก mode หรือจำ subcommand; ให้อนุมาน Polish, Translate, Native Draft, Localize หรือ Audit
+จากคำขอและบริบท
 
-1. ให้เลือกขอบเขต `repo`, `backend`, `frontend` หรือ `hardcode`
-2. แสดงรายการข้อความไทยทั้งหมดที่ตรวจพบในขอบเขตนั้น พร้อมไฟล์และบรรทัด
-3. ให้เปิดข้อความที่ต้องการเพื่อดูทางเลือก 3 แบบ หรือเขียนฉบับของตัวเอง
-4. นำตัวเลือกที่ผู้ใช้ยืนยันไปเป็น approved examples สำหรับข้อความถัดไปทันที
-5. ขออนุมัติจำนวน model calls สูงสุด (รวม validation retry) ก่อน polish ข้อความที่เหลือเป็น batch
-6. ให้ตรวจ แก้ สร้างทางเลือกใหม่ หรือนำแต่ละรายการออกก่อนเขียนไฟล์
-7. ตรวจ Git diff และ test command ที่ผู้ใช้ระบุ แล้ว commit เฉพาะไฟล์ที่ workflow แก้
+ก่อนแก้ไฟล์ใน repository:
 
-`/thai polish`, `/thai translate`, `/thai write` และ `/thai terms` ยังใช้กับข้อความรายชิ้นได้
-คำสั่ง `/skill:thai-contextual-editor` ใน Pi จะเปิด workflow เดียวกับ `/thai` เพื่อไม่ให้มี
-สองเส้นทางที่ทำงานต่างกัน ส่วน runtime อื่นที่ไม่มี Pi extension ให้ทำตาม phase ด้านล่างตามปกติ
+1. หา Git root แล้วอ่าน `thai-guide/README.md` หากมี
+2. อ่านไฟล์เฉพาะบริบทใต้ `thai-guide/` ที่เกี่ยวข้องกับงาน
+3. ถือ `thai-guide/` เป็น SSOT ของสำนวนและศัพท์เฉพาะโครงการ โดยใช้ references ของ skill นี้
+   เป็นแนวทางทั่วไปเมื่อไม่ขัดกับ guide ของโครงการ
+4. จำกัดขอบเขตตามคำขอ ห้าม scan หรือ rewrite ทั้ง repository อัตโนมัติ
+5. ตรวจ diff และ validation ที่เหมาะกับไฟล์ ห้าม commit หรือ push หากผู้ใช้ไม่ได้สั่ง
+
+เมื่อเรียก `/thai` โดยไม่มีข้อความ ให้เปิด editor เพื่อรับคำขอเดียวตามรูปแบบข้างต้น
+`/skill:thai-contextual-editor <คำขอ>` ใช้ workflow เดียวกัน ส่วน runtime ที่ไม่มี Pi extension
+ให้ทำตาม phase ด้านล่างโดยตรง
 
 ## Phase 1: Understand
 

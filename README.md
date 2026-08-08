@@ -106,33 +106,25 @@ and stops on dirty, diverged, shadowed, or conflicting checkouts before changing
 or repairs links under `~/.agents/skills` without overwriting real files or directories. Successful
 and explicitly reported partial Git updates reload Pi so runtime state cannot remain silently stale.
 
-## Interactive Thai editor
+## Thai contextual editor
 
-Use one command with optional shortcuts:
+Use one command followed by a natural-language request:
 
 ```text
-/thai
-/thai polish <text>
-/thai translate <text>
-/thai write <brief>
-/thai terms
+/thai ตรวจภาษาไทยใน diff นี้
+/thai ปรับหน้า attendance ให้สั้นลงโดยไม่เปลี่ยน i18n keys
+/thai เขียนข้อความแจ้งเตือนจาก brief นี้: ...
 ```
 
-`/thai` without arguments opens the repository workflow. Choose `repo`, `backend`, `frontend`, or
-`hardcode`; Pi lists every discovered Thai text with its file and line. Open representative texts to
-compare Faithful, Natural Thai, and Freer rewrite alternatives or write a custom version. Confirmed
-choices immediately guide later batches as approved examples. Before batch polishing, Pi shows the
-exact maximum model-call count, with a 150-call safety ceiling per run. A final review lets you edit,
-regenerate, or remove each proposed change before atomic writes, optional project tests, and an
-explicit file-bounded Git commit. The
-repository must start clean, nothing is pushed, and `/skill:thai-contextual-editor` routes to the same
-workflow rather than creating a second behavior.
+There are no mode subcommands or separate machine-local terminology profile. The command routes the
+request through the normal coding agent and `thai-contextual-editor` skill, so the agent can inspect
+real project context, use normal tools, show a bounded diff, and run project validation. In a Git
+project, it reads `thai-guide/README.md` and the relevant domain file under `thai-guide/` first and
+treats those files as the project style SSOT. It does not scan or rewrite the repository unless the
+request explicitly asks for that scope, and it never commits or pushes unless requested.
 
-`/thai polish`, `/thai translate`, and `/thai write` retain the focused single-text workflow with the
-same three alternatives. `/thai terms` adds mappings such as `ภาคส่วน → sector`; every proposal must
-apply active mappings. Approved style examples and terminology are stored locally in
-`~/.config/thai-contextual-editor/profile.json` only after explicit confirmation, so source text is
-not committed to the skills repository.
+Running `/thai` without arguments opens one editor for the same natural-language request.
+`/skill:thai-contextual-editor <request>` routes to the same workflow.
 
 ## Academic Book Studio
 
