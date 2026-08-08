@@ -118,10 +118,15 @@ Use one command followed by a natural-language request:
 
 There are no mode subcommands or separate machine-local terminology profile. The command routes the
 request through the normal coding agent and `thai-contextual-editor` skill, so the agent can inspect
-real project context, use normal tools, show a bounded diff, and run project validation. In a Git
-project, it reads `thai-guide/README.md` and the relevant domain file under `thai-guide/` first and
-treats those files as the project style SSOT. It does not scan or rewrite the repository unless the
-request explicitly asks for that scope, and it never commits or pushes unless requested.
+real project context and use normal tools. In a Git project, it reads `thai-guide/README.md`, relevant
+domain guidance, and approved examples under `thai-guide/` first.
+
+Manual calibration keeps the user in control: the agent presents one real string with context and
+source metadata, the user writes the preferred version, and only the confirmed before/after pair is
+recorded under `thai-guide/examples/`. Calibration never changes product source and the agent does
+not invent alternatives unless asked. Applying examples is a separate, explicit request; the agent
+then proposes bounded changes, waits for approval, runs validation, and never commits or pushes
+unless requested. It does not scan or rewrite the repository unless the request asks for that scope.
 
 Running `/thai` without arguments opens one editor for the same natural-language request.
 `/skill:thai-contextual-editor <request>` routes to the same workflow.
