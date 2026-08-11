@@ -27,6 +27,13 @@ DRY RUN — no repository, Git, database, service, or deployment mutations perfo
 
 If the user separately asks to apply findings, end this review first and treat implementation as a new, explicitly authorized task.
 
+## Iteration and Validation Budget
+
+- Run **at most two dry-run rounds** per request unless the user explicitly asks for more. A second round exists only to verify remediation of first-round findings, not to rediscover from scratch.
+- Never loop toward a numeric confidence target ("until 95% confident"). Confidence is reported, not farmed: after the final round, state residual risks and what would raise confidence, then stop and let the user decide.
+- When the user authorizes implementation after this review, run **focused checks** (the tests and linters covering the changed files) during remediation rounds; run the project's complete release baseline (full test suite, generated contracts, typecheck, production build) **exactly once at the end of the increment** — not after every remediation round.
+- Long-running programs should start a **fresh session per increment**, handing state forward through a written summary file rather than accumulated conversation context. Repeated auto-compaction of a mega-session destroys prompt caches and silently converts one-off instructions into permanent ritual.
+
 ## Invocation Defaults
 
 - Scope: the current Git repository unless the user supplies a path.
@@ -34,7 +41,11 @@ If the user separately asks to apply findings, end this review first and treat i
 - Include staged, unstaged, and untracked source files in change review.
 - If the tree is clean, audit the whole repository.
 - Large-file threshold: report relevant source files over 800 physical lines; add a clearly labeled 500–800 watch list when responsibility density warrants it.
-- Multi-reviewer budget: four parallel specialist reviewers plus one response critic. If the user supplies a lower budget, obey it.
+- Multi-reviewer budget is **proportional to the change**, not fixed. If the user supplies an explicit budget, obey it. Otherwise:
+  - **Small** (≤ ~200 changed lines and ≤ 5 files, no migration/auth/paid-path/schema-contract surface): one combined reviewer plus one response critic.
+  - **Medium** (up to ~1,000 changed lines, or any single sensitive surface): two reviewers (merge the four specialist briefs into two) plus one response critic.
+  - **Large** (bigger diffs, migrations, security/authorization surfaces, release-scale or whole-repository audits): the full four specialist reviewers plus one response critic.
+  - State the chosen tier and why in the Executive Summary. Never escalate the tier merely to appear thorough.
 
 ## Phase 1 — Establish Scope and Safety
 
@@ -75,9 +86,9 @@ Try to disprove each candidate before reporting it.
 
 ## Phase 3 — Spawn Independent Reviewers
 
-Use the runtime's native `subagent`, task, or delegation tool when available. Run four reviewers in parallel. Use the exact specialist briefs in [references/reviewer-prompts.md](references/reviewer-prompts.md).
+Use the runtime's native `subagent`, task, or delegation tool when available. Run the budgeted number of reviewers in parallel (see Invocation Defaults). Use the exact specialist briefs in [references/reviewer-prompts.md](references/reviewer-prompts.md); at lower tiers, merge the briefs so every dimension below is still covered by some reviewer.
 
-Required reviewers:
+Specialist dimensions (four briefs; assign all of them across however many reviewers the tier allows):
 
 1. **Change correctness and regression reviewer**
 2. **Architecture, conflict, and SSOT reviewer**
@@ -100,12 +111,12 @@ Subagents must return structured findings, not edits.
 If no native delegation tool exists:
 
 1. Prefer a runtime-supported isolated-agent command.
-2. For Pi, invocation of this skill authorizes up to five read-only child reviewers. A safe fallback may spawn isolated `pi -p --no-session` processes with only read/search tools. Pass the diff through a temporary file outside the repository; do not grant edit/write tools.
-3. If isolated subprocesses are unavailable, perform four clearly separated sequential passes in the parent context and state: `Subagents unavailable; sequential independent-pass fallback used.` Never pretend subagents ran.
+2. For Pi, invocation of this skill authorizes read-only child reviewers up to the budgeted tier plus the critic. A safe fallback may spawn isolated `pi -p --no-session` processes with only read/search tools. Pass the diff through a temporary file outside the repository; do not grant edit/write tools.
+3. If isolated subprocesses are unavailable, perform the budgeted number of clearly separated sequential passes in the parent context and state: `Subagents unavailable; sequential independent-pass fallback used.` Never pretend subagents ran.
 
 A failed reviewer must not abort the audit. Report the failure and continue with available evidence.
 
-**Exit:** Four independent review outputs or an explicitly disclosed fallback are available.
+**Exit:** The budgeted independent review outputs or an explicitly disclosed fallback are available.
 
 ## Phase 4 — Synthesize and Verify
 
@@ -166,7 +177,7 @@ DRY RUN — no repository, Git, database, service, or deployment mutations perfo
 ## Codebase Integrity Review: <scope>
 
 ### Executive Summary
-<scope, change base, exclusions, reviewer count/failures, finding counts, verdict>
+<scope, change base, exclusions, reviewer tier + rationale, reviewer count/failures, finding counts, verdict>
 
 ### Changed-Code Review
 <regressions, behavior changes, missing tests, or "no material issues">
@@ -211,7 +222,8 @@ Order findings by severity, then confidence. Do not pad the report with style pr
 - [ ] Dry-run banner present and no mutations performed
 - [ ] Project instructions and generated-file boundaries respected
 - [ ] Changed code and whole-system interactions reviewed
-- [ ] Four specialist reviewers ran, or fallback was disclosed
+- [ ] The budgeted reviewer tier ran (with the tier and rationale stated), or fallback was disclosed
+- [ ] Dry-run rounds stayed within the iteration budget; no confidence-target looping
 - [ ] Response critic reviewed Draft V1 and final response was revised
 - [ ] Every finding has exact evidence, consequence, recommendation, and confidence
 - [ ] SSOT findings name canonical owner and derivation path
