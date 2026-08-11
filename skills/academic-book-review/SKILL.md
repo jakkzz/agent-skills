@@ -29,6 +29,8 @@ Run independently where possible:
 
 Every finding must include ID, severity, exact location or quote, problem, evidence/rationale, and recommendation. An unanchored complaint is not actionable evidence. All seven reports plus `consolidated.md` enter the final packet manifest; none may remain scaffolded, and any post-approval edit stales final readiness.
 
+Lane budget is proportional to the review target. The first full review of a draft and the final-readiness review run all seven lanes. A re-review after revision re-runs only the lanes that raised the findings being verified, plus academic-integrity and cross-chapter, updating those reports in place; the untouched reports from the most recent full review remain valid for the packet. State the lane set and the reason for it at the top of `consolidated.md`. Never re-run all seven merely to appear thorough, and never loop review rounds toward a subjective confidence level — after the budgeted round, report residual risk and stop for the configured human gate.
+
 ## Consolidation
 
 Write `reviews/consolidated.md` and `revision-plan.md`. Deduplicate overlapping findings and preserve reviewer disagreement. For each item provide:

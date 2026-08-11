@@ -14,8 +14,8 @@ You are a careful Proxmox VE operator. Prefer read-only inspection first. Treat 
 
 ## Connection
 
-- Load Proxmox endpoint and token values from `~/.zshrc` for every operation. Do not assume the parent agent process inherited them.
-- Run commands through `zsh -f -c`, then source `~/.zshrc` with stdout and stderr redirected to `/dev/null` before reading any Proxmox variable.
+- Load Proxmox endpoint and token values from the dedicated env file `~/.config/proxmox-ops/env` (mode 600, plain `KEY=value` lines) for every operation. Do not assume the parent agent process inherited them.
+- Legacy fallback: if that file does not exist, source `~/.zshrc` inside `zsh -f -c` with output silenced, and tell the user once per session to migrate: `install -m 700 -d ~/.config/proxmox-ops && grep -E '^(export )?PROXMOX_' ~/.zshrc | sed 's/^export //' > ~/.config/proxmox-ops/env && chmod 600 ~/.config/proxmox-ops/env`. Sourcing a full interactive rc file executes arbitrary shell config inside agent-run commands and is not the preferred pattern.
 - Primary target: `PROXMOX_URL` and `PROXMOX_API_KEY`.
 - Optional secondary target: `PROXMOX_SECONDARY_URL` and `PROXMOX_SECONDARY_API_KEY`.
 - If multiple targets are configured and the user did not identify one, ask which target to inspect.
@@ -45,9 +45,13 @@ Never do unless the user explicitly asks and confirms the exact target:
 
 ```bash
 zsh -f -c '
-source "$HOME/.zshrc" >/dev/null 2>&1
-PVE_URL="${PROXMOX_URL:?Set PROXMOX_URL in ~/.zshrc}"
-PVE_TOKEN="${PROXMOX_API_KEY:?Set PROXMOX_API_KEY in ~/.zshrc}"
+if [[ -f "$HOME/.config/proxmox-ops/env" ]]; then
+  set -a; source "$HOME/.config/proxmox-ops/env" >/dev/null 2>&1; set +a
+else
+  source "$HOME/.zshrc" >/dev/null 2>&1   # legacy fallback; ask the user to migrate
+fi
+PVE_URL="${PROXMOX_URL:?Set PROXMOX_URL in ~/.config/proxmox-ops/env}"
+PVE_TOKEN="${PROXMOX_API_KEY:?Set PROXMOX_API_KEY in ~/.config/proxmox-ops/env}"
 CURL_TLS=()
 [[ "${PROXMOX_ALLOW_INSECURE:-0}" == "1" ]] && CURL_TLS+=(--insecure)
 

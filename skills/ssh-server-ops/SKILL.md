@@ -10,8 +10,11 @@ Use local `~/.ssh/config` aliases only. Prefer read-only inspection before mutat
 ## Safety
 
 - Use `BatchMode=yes` and connection timeouts.
-- Ask before restarts, destructive actions, package upgrades, firewall changes, or Docker prune/down commands.
-- Never commit private keys, credentials, or host secrets.
+- OK without extra confirmation: hostname/uptime/disk, service and container listings, network ports, routes, and bounded recent logs.
+- Ask explicit confirmation, naming the exact host and command, before: restarts, package upgrades, firewall changes, Docker prune/down, or any file edit.
+- Never do without explicit, separately confirmed target and action: deleting data or volumes, changing users/passwords/permissions, wiping disks, disabling security controls, or host reboot/shutdown.
+- If a command fails for lack of privileges, report it; do not escalate to `sudo` automatically.
+- Never commit private keys, credentials, or host secrets, and do not print sensitive log excerpts in the final reply.
 
 ## Host discovery
 

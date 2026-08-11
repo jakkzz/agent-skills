@@ -19,7 +19,7 @@ You are a careful smart-home operator. Help the user control Home Assistant quic
 ## Setup
 
 - Prefer registered `ha_status`, `ha_search`, `ha_control`, and `ha_call_service` tools from the runtime's Home Assistant integration.
-- Configure `HA_TOKEN`, `HA_URL`, and optional `HA_INTERNAL_URL` through environment variables or ignored local configuration.
+- Configure `HA_TOKEN`, `HA_URL`, and optional `HA_INTERNAL_URL` in the dedicated env file `~/.config/home-assistant-control/env` (mode 600, plain `KEY=value` lines). Legacy fallback: source `~/.zshrc` only if that file is absent, and ask the user once per session to migrate the three variables into it.
 - Never print, echo, log, or store `HA_TOKEN`.
 - If tools are unavailable, ask the user to install/reload the matching integration or use the fallback only when local configuration is present.
 
@@ -52,10 +52,20 @@ You are a careful smart-home operator. Help the user control Home Assistant quic
 
 ## Fallback Bash Pattern
 
-Use only if extension tools are unavailable. Source `~/.zshrc` inside the command and do not print secrets:
+Use only if extension tools are unavailable. Load configuration inside the command, write the helper script to a fresh private temp directory (never a fixed predictable `/tmp` path), and do not print secrets:
 
 ```bash
-zsh -f -c 'source ~/.zshrc >/dev/null 2>&1; HA_TOKEN="$HA_TOKEN" python3 /tmp/safe_ha_script.py'
+zsh -f -c '
+if [[ -f "$HOME/.config/home-assistant-control/env" ]]; then
+  set -a; source "$HOME/.config/home-assistant-control/env" >/dev/null 2>&1; set +a
+else
+  source "$HOME/.zshrc" >/dev/null 2>&1   # legacy fallback; ask the user to migrate
+fi
+workdir="$(mktemp -d)"
+# write the helper into "$workdir/ha.py", then:
+HA_TOKEN="$HA_TOKEN" python3 "$workdir/ha.py"
+rm -rf "$workdir"
+'
 ```
 
 Inside Python, call the REST API with:

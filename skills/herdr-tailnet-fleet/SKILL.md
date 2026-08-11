@@ -56,18 +56,29 @@ Before mutations, state the exact hosts and actions and ask for confirmation. Wa
 
 **Entry:** The user explicitly approved named targets and actions.
 
-Use only official installers after checking the current documentation:
+Use only official installers after checking the current documentation. Never pipe a remote script directly into a shell on a fleet host: download it, record its hash, inspect it, then execute the inspected file.
 
 ```bash
-# Linux/macOS direct install
-curl -fsSL https://herdr.dev/install.sh | sh
+# Linux/macOS: download, verify, inspect, then execute
+installer="$(mktemp)"
+curl -fsSL https://herdr.dev/install.sh -o "$installer"
+sha256sum "$installer"          # record the hash in the report
+sed -n '1,120p' "$installer"    # inspect before executing; stop on anything unexpected
+sh "$installer" && rm -f "$installer"
+```
 
-# Windows preview
-powershell -ExecutionPolicy Bypass -c "irm https://herdr.dev/install.ps1 | iex"
+```powershell
+# Windows preview: download, hash, inspect, then execute
+$installer = Join-Path $env:TEMP "herdr-install.ps1"
+Invoke-WebRequest https://herdr.dev/install.ps1 -OutFile $installer
+Get-FileHash $installer            # record the hash in the report
+Get-Content $installer -Head 120   # inspect before executing
+powershell -ExecutionPolicy Bypass -File $installer; Remove-Item $installer
 ```
 
 Rules:
 
+- Never `curl ... | sh` or `irm ... | iex` on a fleet host; execution must be of a downloaded, hashed, inspected file. Compare the hash against a second channel (published checksum or a previously recorded install) when one exists, and report the hash either way.
 - Respect package-managed installs such as Homebrew; do not overwrite them with the direct installer.
 - On Windows, verify `herdr` from a fresh SSH login. If the official junction is blocked as an untrusted mount, use a regular per-user bin copy of the downloaded official binary and add that directory to the user PATH.
 - Enabling macOS Remote Login requires explicit approval because SSH may listen beyond Tailscale.
