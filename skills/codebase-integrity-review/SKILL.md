@@ -1,23 +1,19 @@
 ---
 name: codebase-integrity-review
-description: Dry-run, evidence-based codebase and code-change integrity audit using independent subagent reviewers, followed by adversarial critique and a revised final report. Finds oversized files, conflicts, redundancy, duplicate implementations, SSOT violations, risky hardcoding, configuration drift, and documentation contradictions. Use for thorough code review, architecture integrity review, duplication audits, hardcode audits, or reviewing a Git diff before refactoring or release.
-compatibility: Requires Git for change-aware review. Multi-reviewer mode requires a native subagent/delegation tool or a Pi CLI fallback; otherwise the skill must disclose a sequential-review fallback.
+description: Adaptive, evidence-based, read-only review of Git changes or codebase integrity. Finds regressions, conflicting ownership, harmful duplication, risky hardcoding, configuration drift, oversized responsibility boundaries, and documentation contradictions. Use for deep code review, architecture integrity, duplication or hardcode audits, and pre-release assessment.
+compatibility: Requires Git for change-aware review. Delegation is optional; disclose sequential fallback when isolated reviewers are unavailable.
 allowed-tools: read grep find ls bash subagent
 ---
 
 # Codebase Integrity Review
+Act as a skeptical staff engineer. Find material correctness and maintainability risks without rewarding abstraction for its own sake. Empty findings are valid; reviewers have no finding quota.
 
-Act as a skeptical staff engineer. Audit maintainability and architectural coherence without rewarding abstraction for its own sake.
+## Safety Contract
+Every invocation is a **DRY RUN**.
 
-## Non-Negotiable Mode: Dry Run
+**MAY:** read source, documentation, Git metadata/history/diffs, ignored-file names, and read-only tool output; run checks that do not write repository files; propose changes.
 
-Every invocation starts in **DRY RUN** mode.
-
-**MAY:** read source and project documentation, inspect Git history/status/diffs, count lines, search call sites, run safe read-only analysis, query read-only metadata, and propose changes.
-
-**MUST NOT:** edit repository files, apply patches, format code, update dependencies, commit, push, deploy, restart services, mutate databases, or run destructive commands. Do not auto-fix findings.
-
-Temporary files outside the repository are allowed only for passing a diff or draft to isolated reviewers. Remove them after use. Do not print secrets or read ignored `.env` contents; inspect only whether secret-bearing files are tracked or ignored.
+**MUST NOT:** edit or format files, install/update dependencies, run code generation or writing builds, commit, push, deploy, restart services, mutate databases, inspect ignored secret contents, or print secrets.
 
 Start the final answer with:
 
@@ -25,208 +21,136 @@ Start the final answer with:
 DRY RUN — no repository, Git, database, service, or deployment mutations performed.
 ```
 
-If the user separately asks to apply findings, end this review first and treat implementation as a new, explicitly authorized task.
+Implementation requested afterward is a new, explicitly authorized task.
 
 ## Iteration and Validation Budget
 
-- Run **at most two dry-run rounds** per request unless the user explicitly asks for more. A second round exists only to verify remediation of first-round findings, not to rediscover from scratch.
-- Never loop toward a numeric confidence target ("until 95% confident"). Confidence is reported, not farmed: after the final round, state residual risks and what would raise confidence, then stop and let the user decide.
-- When the user authorizes implementation after this review, run **focused checks** (the tests and linters covering the changed files) during remediation rounds; run the project's complete release baseline (full test suite, generated contracts, typecheck, production build) **exactly once at the end of the increment** — not after every remediation round.
-- Long-running programs should start a **fresh session per increment**, handing state forward through a written summary file rather than accumulated conversation context. Repeated auto-compaction of a mega-session destroys prompt caches and silently converts one-off instructions into permanent ritual.
+- Run at most two dry-run rounds unless the user explicitly requests more. A second round verifies remediation; it does not restart discovery.
+- Never loop toward a numeric confidence target. Report residual risk and what evidence would raise confidence, then stop.
+- During authorized remediation, use focused checks for intermediate work and run the complete release baseline once at the end of the increment. Prefer a fresh session and written handoff for each long-running increment.
 
-## Invocation Defaults
+## Modes and Defaults
 
-- Scope: the current Git repository unless the user supplies a path.
-- Change base, in order: user-specified ref; merge-base with the configured upstream; merge-base with the default branch; `HEAD` for working-tree-only changes.
-- Include staged, unstaged, and untracked source files in change review.
-- If the tree is clean, audit the whole repository.
-- Large-file threshold: report relevant source files over 800 physical lines; add a clearly labeled 500–800 watch list when responsibility density warrants it.
-- Multi-reviewer budget is **proportional to the change**, not fixed. If the user supplies an explicit budget, obey it. Otherwise:
-  - **Small** (≤ ~200 changed lines and ≤ 5 files, no migration/auth/paid-path/schema-contract surface): one combined reviewer plus one response critic.
-  - **Medium** (up to ~1,000 changed lines, or any single sensitive surface): two reviewers (merge the four specialist briefs into two) plus one response critic.
-  - **Large** (bigger diffs, migrations, security/authorization surfaces, release-scale or whole-repository audits): the full four specialist reviewers plus one response critic.
-  - State the chosen tier and why in the Executive Summary. Never escalate the tier merely to appear thorough.
+Select the narrowest mode matching the request:
 
-## Phase 1 — Establish Scope and Safety
+- **diff** — regressions, contract changes, and missing verification in staged, unstaged, untracked, and branch changes.
+- **integrity** — ownership, duplication, configuration, hardcoding, documentation drift, and responsibility boundaries.
+- **targeted** — one concern or path named by the user.
+- **full** — diff plus repository integrity; use only when requested or clearly necessary for release/architecture assessment.
 
-1. Resolve the repository root and requested scope.
-2. Read every applicable `AGENTS.md`/`CLAUDE.md`, README, architecture document, ADR, manifest, generator/config document, and linked instruction needed for the scope.
-3. Capture without changing anything:
-   - branch, HEAD, upstream/default branch, and merge-base
-   - staged/unstaged/untracked paths
-   - diff statistics and changed-file list
-   - ignore rules and whether secrets/build artifacts are tracked
-4. Classify generated, vendored, minified, lock, snapshot, fixture, migration, and binary files. Do not review them as ordinary source; retain them as contract/history evidence when relevant.
-5. State the exact review scope and exclusions.
+Default to **diff** when relevant changes exist; otherwise use **integrity**. State mode, root, base, included paths, and exclusions.
 
-**Exit:** A change manifest and repository boundary are known.
+Resolve the base in order: user ref; upstream merge-base; default-branch merge-base; `HEAD` for working-tree-only changes.
 
-## Phase 2 — Build an Evidence Bundle
+## Phase 1 — Establish Context
 
-Map important concepts to their definitions and consumers:
+1. Resolve repository root, mode, base, and requested scope.
+2. Read applicable `AGENTS.md`/`CLAUDE.md`, README, architecture docs, ADRs, manifests, and linked instructions needed for that scope.
+3. Capture branch, HEAD, base, staged/unstaged/untracked paths, diff statistics, and changed files.
+4. Classify generated, vendored, minified, lock, snapshot, fixture, migration, and binary files. Treat them as contract/history evidence, not ordinary source.
+5. Discover documented test, type-check, lint, and validation commands. Run only those known not to write repository files; otherwise report them as skipped.
 
-- models, schemas, DTOs, enums, validators, and database constraints
-- authorization roles, capabilities, state machines, and business thresholds
-- environment variables, defaults, flags, URLs, product identifiers, and magic numbers
-- routes, commands, registrations, event names, and public interfaces
-- formatting, timezones, projections, caches, and denormalized fields
-- documentation claims and operational behavior
+**Exit:** scope, instructions, change manifest, exclusions, and safe validation plan are known.
 
-For changed code, trace both upstream producers and downstream consumers. Record representative `file:line` evidence before forming conclusions.
+## Phase 2 — Build a Compact Evidence Index
 
-Search hardcoding by category:
+Record evidence as:
 
-1. **Risky:** credentials/default passwords, environment-specific hosts, tenant/course/user IDs, policy thresholds, duplicated status values, mutable product facts, test IDs in production paths.
-2. **Potentially legitimate:** protocol constants, vendor API endpoints, file signatures, standards-defined limits, immutable attribution URLs.
-3. **Presentation-only:** copy or labels that still become conflicts when they assert dynamic facts.
+```yaml
+repo_root: ...
+mode: diff | integrity | targeted | full
+base: ...
+changed_files: [...]
+risk_domains: [...]
+instructions: [...]
+exclusions: [...]
+validation: [...]
+candidates:
+  - concept: ...
+    evidence: [path:line, path:line]
+```
 
-Try to disprove each candidate before reporting it.
+Trace relevant definitions to representative producers and consumers: schemas, authorization, state machines, thresholds, configuration, routes, public interfaces, projections, caches, and documentation claims.
 
-**Exit:** The parent reviewer has a compact evidence bundle and candidate ownership map.
+Classify hardcodes as risky, intentional protocol/vendor constants, standards-defined invariants, or presentation-only. Evaluate responsibility density—reasons to change, dependency breadth, public surface, and testability—before using line count. Source files over 800 lines are discovery candidates; 500–800 lines belong on a watch list only when responsibilities are mixed.
 
-## Phase 3 — Spawn Independent Reviewers
+Try to disprove every candidate using tests, generators, comments, ADRs, history, and boundary semantics.
 
-Use the runtime's native `subagent`, task, or delegation tool when available. Run the budgeted number of reviewers in parallel (see Invocation Defaults). Use the exact specialist briefs in [references/reviewer-prompts.md](references/reviewer-prompts.md); at lower tiers, merge the briefs so every dimension below is still covered by some reviewer.
+**Exit:** a bounded evidence index and candidate set exist.
 
-Specialist dimensions (four briefs; assign all of them across however many reviewers the tier allows):
+## Phase 3 — Choose Review Depth
 
-1. **Change correctness and regression reviewer**
-2. **Architecture, conflict, and SSOT reviewer**
-3. **Duplication, redundancy, and oversized-file reviewer**
-4. **Hardcoding, configuration, security-default, and documentation-drift reviewer**
+Use adaptive depth rather than mandatory fan-out:
 
-Give every reviewer:
+- **Small:** up to 10 changed files and about 400 changed lines, low risk — one primary reviewer.
+- **Standard:** broader or cross-module work — primary reviewer plus one relevant specialist.
+- **Deep:** large, security/data-sensitive, release-critical, or explicit full audit — up to four specialists and a response critic.
 
-- repository root and review base
-- changed-file manifest and diff/evidence bundle
-- applicable project instructions
-- strict read-only constraints
-- requirement for exact `file:line` evidence
-- requirement to attempt to disprove findings
+Available specialist briefs are in [references/reviewer-prompts.md](references/reviewer-prompts.md). Select only relevant reviewers:
 
-Subagents must return structured findings, not edits.
+1. correctness/regression — default for diff mode;
+2. architecture/SSOT — ownership or contract changes;
+3. duplication/responsibility — broad refactors or explicit maintainability audit;
+4. configuration/documentation — config, deployment, policy, hardcode, or docs risk.
 
-### Subagent Fallback
+Give reviewers the repository root, base, scope, applicable instructions, compact evidence index, and shared safety contract. Let them inspect relevant files directly; do not embed an unbounded repository diff.
 
-If no native delegation tool exists:
+Prefer native delegation. If unavailable, perform clearly separated sequential passes and state: `Subagents unavailable; sequential independent-pass fallback used.` Reviewer failure does not abort the audit.
 
-1. Prefer a runtime-supported isolated-agent command.
-2. For Pi, invocation of this skill authorizes read-only child reviewers up to the budgeted tier plus the critic. A safe fallback may spawn isolated `pi -p --no-session` processes with only read/search tools. Pass the diff through a temporary file outside the repository; do not grant edit/write tools.
-3. If isolated subprocesses are unavailable, perform the budgeted number of clearly separated sequential passes in the parent context and state: `Subagents unavailable; sequential independent-pass fallback used.` Never pretend subagents ran.
+**Exit:** proportionate independent review evidence is available.
 
-A failed reviewer must not abort the audit. Report the failure and continue with available evidence.
+## Phase 4 — Verify and Reconcile
 
-**Exit:** The budgeted independent review outputs or an explicitly disclosed fallback are available.
+The parent reviewer must independently verify every reported finding:
 
-## Phase 4 — Synthesize and Verify
+1. Confirm exact `file:line` evidence and representative consumers.
+2. State an observable failure or concrete divergence mechanism.
+3. Distinguish introduced, exposed, pre-existing, and unrelated issues.
+4. Reject intentional boundary translation, immutable migrations, mirrored test fixtures, and small local similarity unless actual drift or behavior risk exists.
+5. Deduplicate findings and calibrate severity:
+   - **Critical:** exploitable security, corruption, unsafe operation, or credible outage path.
+   - **High:** reproducible incorrect behavior in a supported path.
+   - **Medium:** concrete divergence/regression mechanism without a demonstrated current failure.
+   - **Low:** bounded maintainability debt without demonstrated behavior risk.
+6. Require corroborating evidence for Medium-or-higher architectural claims unless one location independently demonstrates the defect.
+7. For SSOT findings, name the concept, competing sources, canonical owner, derivation rule, and migration risk.
+8. For responsibility overload, name cohesive seams and a behavior-preserving migration order; never split solely by line count.
 
-Merge reviewer outputs with the parent evidence bundle.
+Use a response critic only for Deep reviews, Critical/High findings, or explicit user request. Validate criticism rather than accepting it automatically.
 
-For every candidate:
+**Exit:** unsupported claims are removed and remaining findings are verified.
 
-1. Read both definitions and representative consumers.
-2. Identify the observable failure, maintenance cost, or divergence risk.
-3. Search tests, generators, comments, ADRs, and history for intentional duplication.
-4. Distinguish:
-   - harmful duplicate authority
-   - deliberate boundary translation
-   - database/API validation at separate layers
-   - immutable migration history
-   - test fixtures intentionally mirroring contracts
-5. Deduplicate overlapping findings.
-6. Calibrate severity:
-   - **Critical:** active conflict can cause unsafe, corrupt, or security-sensitive behavior
-   - **High:** already divergent or likely to produce incorrect behavior
-   - **Medium:** meaningful change risk, redundancy, or responsibility overload
-   - **Low:** bounded cleanup opportunity
-7. Assign confidence and remove claims that cannot be supported with exact evidence.
+## Final Report
 
-For each SSOT finding, name:
-
-- the concept needing one owner
-- current competing sources
-- recommended canonical source
-- derivation/consumer rule
-- migration and compatibility risk
-
-For each oversized file, name cohesive extraction seams and a safe migration order. Never recommend arbitrary splitting solely because of line count.
-
-**Exit:** A verified, deduplicated finding set exists.
-
-## Phase 5 — Draft, Critique, and Revise
-
-1. Create a private Draft V1 using the report structure below.
-2. Spawn one final **response critic** using the prompt in [references/reviewer-prompts.md](references/reviewer-prompts.md). Give it Draft V1 plus the evidence/finding index.
-3. The critic checks:
-   - unsupported or overstated claims
-   - missed conflicts in changed code
-   - false-positive duplication
-   - severity and confidence calibration
-   - missing canonical owners or migration risks
-   - recommendations that would violate project constraints
-4. Revise the report using valid criticism. Do not blindly accept critic feedback.
-5. Return only the revised final report unless the user asks for reviewer transcripts or Draft V1.
-
-**Exit:** The user receives a second-pass, adversarially reviewed answer.
-
-## Final Report Structure
+Always include the dry-run banner and these sections:
 
 ```markdown
-DRY RUN — no repository, Git, database, service, or deployment mutations performed.
-
 ## Codebase Integrity Review: <scope>
-
 ### Executive Summary
-<scope, change base, exclusions, reviewer tier + rationale, reviewer count/failures, finding counts, verdict>
-
-### Changed-Code Review
-<regressions, behavior changes, missing tests, or "no material issues">
+<mode, base, scope, exclusions, reviewer depth/failures, validation, finding counts>
 
 ### Findings
-#### [HIGH][SSOT-1] <concept>
+#### [HIGH][CATEGORY-1] <title>
 - Evidence: `path:line`, `path:line`
-- Competing sources: ...
+- Relationship: introduced | exposed | pre-existing | unrelated
 - Consequence: ...
-- Canonical source: ...
-- Derivation rule: ...
+- Attempted disproof: ...
 - Recommendation: ...
-- Compatibility risk: ...
 - Confidence: High | Medium | Low
 
-### Hardcoding Inventory
-| Category | Evidence | Verdict | Recommended owner |
-
-### Oversized Files
-| File | Lines | Classification | Responsibilities | Refactor verdict | Proposed seams |
-
-### Canonical Ownership Map
-| Concept | Current sources | Recommended owner | Consumer rule |
-
-### Refactor Sequence
-1. <small, behavior-preserving step and verification>
-
-### Reviewer Reconciliation
-<agreements, rejected claims, unresolved disagreements, failed reviewers>
-
 ### Validation and Limitations
-<commands run, exclusions, unavailable tools, assumptions>
-
 ### Verdict
 PASS | PASS WITH RECOMMENDATIONS | REFACTOR ADVISED | CONFLICTS REQUIRE ACTION
 ```
 
-Order findings by severity, then confidence. Do not pad the report with style preferences. If no meaningful issues exist, say so directly.
+Add Changed-Code Review, Hardcoding Inventory, Oversized Files, Canonical Ownership Map, Refactor Sequence, or Reviewer Reconciliation only when they contain material information. Order findings by severity then confidence. Do not pad the report with style preferences.
 
 ## Final Checklist
 
-- [ ] Dry-run banner present and no mutations performed
-- [ ] Project instructions and generated-file boundaries respected
-- [ ] Changed code and whole-system interactions reviewed
-- [ ] The budgeted reviewer tier ran (with the tier and rationale stated), or fallback was disclosed
-- [ ] Dry-run rounds stayed within the iteration budget; no confidence-target looping
-- [ ] Response critic reviewed Draft V1 and final response was revised
-- [ ] Every finding has exact evidence, consequence, recommendation, and confidence
-- [ ] SSOT findings name canonical owner and derivation path
-- [ ] Hardcodes are classified rather than indiscriminately condemned
-- [ ] Files over 800 lines are listed; generated exceptions are labeled
-- [ ] Reviewer disagreements and limitations are disclosed
+- [ ] Dry-run contract respected and banner present
+- [ ] Scope, mode, base, instructions, and exclusions stated
+- [ ] Review depth was proportionate and fallback/failures disclosed
+- [ ] Safe project validations were run or explicitly skipped
+- [ ] Every finding has exact evidence, consequence, attempted disproof, recommendation, and confidence
+- [ ] Severity reflects observable impact rather than architectural dislike
+- [ ] Clean, finding-free results were allowed

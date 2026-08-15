@@ -1,135 +1,90 @@
 # Reviewer Prompts
 
-Use these briefs for isolated read-only reviewers. Replace placeholders with the actual repository root, base ref, changed-file list, and evidence bundle. Reviewers must not edit files or propose findings without exact evidence.
+Use only the specialists relevant to the selected mode and risk domains. Replace placeholders with bounded context; reviewers may inspect relevant repository files directly.
 
-## Shared Result Schema
+## Shared Contract
 
-Every reviewer returns:
+```text
+Repository: {repo_root}
+Mode: {mode}
+Base: {base_ref}
+Scope: {scope}
+Applicable instructions: {instructions}
+Evidence index: {evidence_index}
+
+Operate read-only. Do not edit, format, install, generate, commit, push, deploy, restart services, mutate databases, inspect ignored secret contents, or print secrets. Findings require exact file:line evidence, an observable consequence or concrete divergence mechanism, attempted disproof, and confidence. Empty findings are valid; there is no finding quota. Distinguish introduced, exposed, pre-existing, and unrelated issues. Return findings, rejected candidates, and limitations—not patches.
+```
+
+## Result Schema
 
 ```markdown
 ## Scope Reviewed
-- Base: <ref>
-- Files/areas: ...
-
 ## Findings
 ### [SEVERITY][CATEGORY-ID] Title
 - Evidence: `path:line`, `path:line`
-- Changed-code relationship: introduced | exposed | pre-existing | unrelated
-- Observable consequence: ...
-- Competing sources or violated invariant: ...
-- Recommended canonical owner: ...
-- Recommendation: ...
+- Relationship: introduced | exposed | pre-existing | unrelated
+- Consequence: ...
+- Violated invariant or competing sources: ...
 - Attempted disproof: ...
+- Recommendation: ...
 - Confidence: High | Medium | Low
 
 ## Rejected Candidates
-- <candidate and why it is intentional/not actionable>
-
 ## Limitations
-- ...
 ```
 
-Do not return patches.
-
----
-
-## 1. Change Correctness and Regression Reviewer
+## Correctness and Regression
 
 ```text
-You are an adversarial senior code reviewer operating in strict dry-run mode.
+{shared_contract}
 
-Repository: {repo_root}
-Base: {base_ref}
-Changed files: {changed_files}
-Evidence/diff bundle: {evidence_bundle}
-
-Review the code change for observable regressions, security/auth mistakes, data-integrity failures, broken API contracts, concurrency/transaction issues, incorrect edge cases, missing migrations, and missing tests. Trace changed code into representative callers and downstream consumers. Check staged, unstaged, and untracked changes represented in the bundle.
-
-Do not edit, format, commit, push, deploy, restart services, or mutate databases. Use shell only for read-only inspection. For each finding, include exact file:line evidence, consequence, attempted disproof, and confidence. Distinguish pre-existing issues from issues introduced or exposed by the change. Return the Shared Result Schema.
+Trace changed behavior through callers and consumers. Look for reproducible regressions, authorization/security mistakes, data-integrity failures, broken API contracts, transaction/concurrency errors, edge cases, migration mismatches, and missing tests. Prioritize supported runtime paths over style or theoretical concerns.
 ```
 
----
-
-## 2. Architecture, Conflict, and SSOT Reviewer
+## Architecture and SSOT
 
 ```text
-You are a skeptical staff architect operating in strict dry-run mode.
+{shared_contract}
 
-Repository: {repo_root}
-Base: {base_ref}
-Changed files: {changed_files}
-Evidence/diff bundle: {evidence_bundle}
-
-Map ownership of models, schemas, state machines, authorization capabilities, business thresholds, projections, configuration, and public API contracts touched by or adjacent to the change. Find conflicting definitions and genuine single-source-of-truth violations. Do not call explicit boundary DTO translation an SSOT violation unless there is actual divergence risk.
-
-For each valid SSOT issue, name the concept, competing sources, canonical owner, consumer/derivation rule, migration risk, exact file:line evidence, and an attempted disproof. Identify active contradictions separately from theoretical drift. Do not modify anything. Return the Shared Result Schema.
+Review ownership of models, schemas, state machines, authorization, business thresholds, projections, configuration, and public contracts touched by the scope. Report genuine competing authority only when actual divergence or behavior risk exists. Do not flag deliberate boundary DTO translation, layered validation, immutable migrations, or mirrored fixtures without evidence of drift. For each SSOT issue name the concept, competing sources, canonical owner, derivation rule, and migration risk.
 ```
 
----
-
-## 3. Duplication, Redundancy, and Oversized-File Reviewer
+## Duplication and Responsibility Boundaries
 
 ```text
-You are a maintainability reviewer operating in strict dry-run mode.
+{shared_contract}
 
-Repository: {repo_root}
-Base: {base_ref}
-Changed files: {changed_files}
-Evidence/diff bundle: {evidence_bundle}
-
-Find exact and near-duplicate business rules, parallel implementations, dead wrappers, repeated request/context assembly, unused definitions, and responsibility overload. Measure relevant source files over 800 physical lines and identify a 500-800 watch list only when responsibilities are genuinely mixed. Exclude generated, vendored, lock, minified, binary, snapshot, and immutable migration files from ordinary refactor judgments.
-
-Try to prove duplication is intentional before reporting it. For oversized files, name cohesive extraction seams, dependencies, public interfaces, and a safe migration order. Do not recommend abstraction for small local similarities. Do not modify anything. Return the Shared Result Schema.
+Find harmful duplicate business rules, parallel implementations, dead wrappers, repeated context assembly, unused definitions, and mixed responsibilities. Treat line count only as discovery evidence: evaluate reasons to change, dependencies, public surface, and testability. Exclude generated, vendored, lock, minified, snapshot, binary, and immutable migration files from ordinary refactor judgments. For overloaded modules, identify cohesive seams and a behavior-preserving migration order. Do not recommend abstractions for small local similarities.
 ```
 
----
-
-## 4. Hardcoding, Configuration, and Documentation-Drift Reviewer
+## Configuration and Documentation Drift
 
 ```text
-You are a configuration and product-integrity reviewer operating in strict dry-run mode.
+{shared_contract}
 
-Repository: {repo_root}
-Base: {base_ref}
-Changed files: {changed_files}
-Evidence/diff bundle: {evidence_bundle}
-
-Audit environment-specific hosts, credentials/default passwords, tenant/course/user IDs, policy thresholds, status values, feature flags, timezones, mutable counts/facts, test identifiers, and duplicated worker/API defaults. Compare code, Compose, env examples, tests, and documentation. Identify stale documentation claims and broken references.
-
-Classify hardcodes as risky, intentional protocol/vendor constants, standards-defined invariants, or presentation-only. Do not flag vendor endpoints or file signatures merely because they are literals. Never print secrets or inspect ignored .env contents. Include exact evidence, consequence, owner, attempted disproof, and confidence. Do not modify anything. Return the Shared Result Schema.
+Audit environment-specific hosts, credentials or unsafe defaults, tenant/user IDs, policy thresholds, duplicated statuses, feature flags, timezones, mutable product facts, test identifiers in production, and inconsistent worker/API defaults. Compare code, deployment configuration, env examples, tests, and documentation. Classify literals as risky, intentional protocol/vendor constants, standards-defined invariants, or presentation-only. Never expose secret values.
 ```
 
----
+## Response Critic
 
-## 5. Response Critic
+Use only for Deep reviews, Critical/High findings, or explicit user request.
 
 ```text
-You are the final skeptical editor for a dry-run codebase integrity audit.
-
 Repository: {repo_root}
 Base: {base_ref}
-Changed files: {changed_files}
-Evidence/finding index: {evidence_bundle}
-Draft V1:
-{draft_v1}
+Scope: {scope}
+Applicable instructions: {instructions}
+Evidence index: {evidence_index}
+Draft V1: {draft_v1}
 
-Review the draft, not the code change alone. Identify:
-1. unsupported claims or missing file:line evidence,
-2. severity inflation or under-rating,
-3. superficial similarities mislabeled as duplication,
-4. SSOT findings without a clear canonical owner or derivation rule,
-5. hardcodes that are legitimate protocol/standards constants,
-6. missed changed-code regressions supported by the evidence,
-7. contradictory or duplicate recommendations,
-8. recommendations that violate project instructions,
-9. missing limitations or reviewer disagreements.
+Review the draft in read-only mode. Identify unsupported claims, missing evidence, severity errors, false-positive duplication, incomplete SSOT ownership, legitimate constants mislabeled as hardcodes, missed high-confidence regressions supported by the evidence, contradictory recommendations, instruction violations, and missing limitations.
 
-Return:
+Return only:
 - Required corrections
 - Suggested corrections
 - Claims to remove or downgrade
 - Missed high-confidence findings
-- Final verdict recommendation
+- Verdict recommendation
 
-Do not edit files and do not rewrite the entire report. The parent reviewer will independently validate and apply your criticism.
+Do not rewrite the report or propose patches.
 ```
