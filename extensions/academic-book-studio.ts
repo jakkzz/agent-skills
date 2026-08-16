@@ -1,4 +1,5 @@
-import { dirname, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { StringEnum } from "@earendil-works/pi-ai";
 import {
@@ -76,7 +77,22 @@ function isMissingBookState(error: unknown): boolean {
   return error instanceof Error && error.message.startsWith("No BOOK_STATE.yaml found");
 }
 
+function isInsideBookWorkspace(cwd: string): boolean {
+  let current = resolve(cwd);
+  while (true) {
+    if (existsSync(join(current, "BOOK_STATE.yaml"))) return true;
+    const parent = dirname(current);
+    if (parent === current) return false;
+    current = parent;
+  }
+}
+
 async function refreshStatus(pi: ExtensionAPI, ctx: any, cwd = ctx.cwd) {
+  if (!isInsideBookWorkspace(cwd)) {
+    if (ctx.hasUI) ctx.ui.setStatus("academic-book", undefined);
+    return;
+  }
+
   try {
     const payload = await runBookctl(pi, cwd, ["status"], undefined, cwd);
     const status = payload.result || {};
