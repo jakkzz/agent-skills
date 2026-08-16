@@ -23,6 +23,16 @@ const MAX_OUTPUT_BYTES = 45_000;
 const MAX_OUTPUT_LINES = 1_500;
 
 type Mode = "headless" | "headed";
+type DisplayStatus = {
+  platform: NodeJS.Platform;
+  herdr: boolean;
+  ssh: boolean;
+  display?: string;
+  waylandDisplay?: string;
+  headedAvailable: boolean;
+  transport: "local-desktop" | "x11" | "wayland" | "unknown" | "unavailable";
+  guidance?: string;
+};
 type AriaRole = Parameters<Page["getByRole"]>[0];
 type ConsoleEntry = { type: string; text: string; url?: string; line?: number; timestamp: string };
 type LocatorParams = {
@@ -43,6 +53,70 @@ const locatorFields = {
 
 function checkCancelled(signal?: AbortSignal): void {
   if (signal?.aborted) throw new Error("Browser operation cancelled");
+}
+
+function getDisplayStatus(): DisplayStatus {
+  const herdr = process.env.HERDR_ENV === "1";
+  const ssh = Boolean(process.env.SSH_CONNECTION || process.env.SSH_CLIENT || process.env.SSH_TTY);
+  const display = process.env.DISPLAY || undefined;
+  const waylandDisplay = process.env.WAYLAND_DISPLAY || undefined;
+
+  if (process.platform === "linux") {
+    if (waylandDisplay) return { platform: process.platform, herdr, ssh, display, waylandDisplay, headedAvailable: true, transport: "wayland" };
+    if (display) return { platform: process.platform, herdr, ssh, display, waylandDisplay, headedAvailable: true, transport: "x11" };
+    const guidance = herdr
+      ? "This Herdr-managed Pi pane has no DISPLAY or WAYLAND_DISPLAY. A later Herdr client attachment cannot retrofit display forwarding into the persistent pane. Start a fresh Herdr server/pane and Pi process from an X11-forwarded SSH login, or use headless mode."
+      : ssh
+        ? "This SSH session has no DISPLAY or WAYLAND_DISPLAY. Reconnect with ssh -Y <server>, verify echo $DISPLAY, then start Pi again; or use headless mode."
+        : "No DISPLAY or WAYLAND_DISPLAY is configured. Start a graphical session or use headless mode.";
+    return { platform: process.platform, herdr, ssh, headedAvailable: false, transport: "unavailable", guidance };
+  }
+
+  if (process.platform === "darwin") {
+    const guidance = ssh
+      ? "Native macOS Chromium uses the WindowServer, not X11 forwarding. Run Pi on the local Mac desktop or use headless mode for a remote Mac."
+      : undefined;
+    return {
+      platform: process.platform,
+      herdr,
+      ssh,
+      display,
+      waylandDisplay,
+      headedAvailable: !ssh,
+      transport: ssh ? "unavailable" : "local-desktop",
+      guidance,
+    };
+  }
+
+  return {
+    platform: process.platform,
+    herdr,
+    ssh,
+    display,
+    waylandDisplay,
+    headedAvailable: !ssh,
+    transport: ssh ? "unknown" : "local-desktop",
+    guidance: ssh ? "A graphical desktop cannot be verified in this SSH session; use headless mode unless the remote environment explicitly exposes one." : undefined,
+  };
+}
+
+function formatDisplayStatus(status: DisplayStatus): string {
+  return [
+    `Platform: ${status.platform}`,
+    `Herdr-managed: ${status.herdr ? "yes" : "no"}`,
+    `SSH environment: ${status.ssh ? "yes" : "no"}`,
+    `DISPLAY: ${status.display ?? "not set"}`,
+    `WAYLAND_DISPLAY: ${status.waylandDisplay ?? "not set"}`,
+    `Headed available: ${status.headedAvailable ? "yes" : "no"}`,
+    `Display transport: ${status.transport}`,
+    status.guidance ? `Guidance: ${status.guidance}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function requireHeadedDisplay(): DisplayStatus {
+  const status = getDisplayStatus();
+  if (!status.headedAvailable) throw new Error(`Headed browser preflight failed.\n${formatDisplayStatus(status)}`);
+  return status;
 }
 
 async function ensureChromiumInstalled(signal?: AbortSignal, onProgress?: (message: string) => void): Promise<boolean> {
@@ -105,9 +179,10 @@ class BrowserManager {
     return next;
   }
 
-  async open(mode: Mode, signal?: AbortSignal, onProgress?: (message: string) => void): Promise<{ page: Page; installed: boolean }> {
-    if (this.page && this.mode === mode && !this.page.isClosed()) return { page: this.page, installed: false };
+  async open(mode: Mode, signal?: AbortSignal, onProgress?: (message: string) => void): Promise<{ page: Page; installed: boolean; display: DisplayStatus }> {
+    if (this.page && this.mode === mode && !this.page.isClosed()) return { page: this.page, installed: false, display: getDisplayStatus() };
     await this.close();
+    const display = mode === "headed" ? requireHeadedDisplay() : getDisplayStatus();
     const installed = await ensureChromiumInstalled(signal, onProgress);
     this.browser = await chromium.launch({ headless: mode === "headless" });
     this.context = await this.browser.newContext({
@@ -134,7 +209,7 @@ class BrowserManager {
       this.consoleEntries.push({ type: "pageerror", text: error.message, timestamp: new Date().toISOString() });
       if (this.consoleEntries.length > MAX_CONSOLE_ENTRIES) this.consoleEntries.shift();
     });
-    return { page: this.page, installed };
+    return { page: this.page, installed, display };
   }
 
   requirePage(): Page {
@@ -197,6 +272,19 @@ export default function playwrightExtension(pi: ExtensionAPI) {
   ];
 
   pi.registerTool({
+    name: "browser_display_status",
+    label: "Browser Display Status",
+    description: "Check whether headed Playwright can use a local desktop, X11, or Wayland display. Distinguishes Herdr-managed panes from ordinary SSH sessions without launching a browser.",
+    promptSnippet: "Check headed-browser display forwarding for local, SSH, and Herdr sessions",
+    promptGuidelines: guidelines,
+    parameters: Type.Object({}),
+    async execute() {
+      const status = getDisplayStatus();
+      return textResult(formatDisplayStatus(status), status as unknown as Record<string, unknown>);
+    },
+  });
+
+  pi.registerTool({
     name: "browser_open",
     label: "Open Browser",
     description: "Open an isolated Chromium session in headless or headed mode. Verifies the browser executable and automatically installs Playwright Chromium on first use when missing. Relaunches when the requested mode changes.",
@@ -209,7 +297,7 @@ export default function playwrightExtension(pi: ExtensionAPI) {
     async execute(_id, params, signal, onUpdate) {
       return manager.run(async () => {
         checkCancelled(signal);
-        const { page, installed } = await manager.open(params.mode, signal, (message) => {
+        const { page, installed, display } = await manager.open(params.mode, signal, (message) => {
           onUpdate?.({ content: [{ type: "text", text: message }], details: { installing: true } });
         });
         let status: number | undefined;
@@ -220,7 +308,7 @@ export default function playwrightExtension(pi: ExtensionAPI) {
         }
         checkCancelled(signal);
         return textResult(`Browser opened (${params.mode})${installed ? "\nPlaywright Chromium was installed automatically." : ""}\nURL: ${page.url()}\nTitle: ${await page.title()}${status ? `\nHTTP: ${status}` : ""}`, {
-          ...manager.status(), status, installed,
+          ...manager.status(), status, installed, display,
         });
       });
     },

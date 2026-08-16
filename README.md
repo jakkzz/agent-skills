@@ -71,7 +71,7 @@ isolated shells and explicitly forbid `env`, `printenv`, and command tracing.
 | `herdr-tab-namer.ts` | Name Herdr tabs from substantial top-level tasks without exposing likely secrets. |
 | `herdr-tailnet.ts` | Audit configured Herdr hosts through control-plane-verified Tailnet routes. |
 | `myskill.ts` | Inspect and safely synchronize the canonical shared skill checkout. |
-| `playwright.ts` | Provide isolated headed/headless Chromium tools for semantic frontend E2E testing. |
+| `playwright.ts` | Provide isolated headed/headless Chromium tools with local, SSH, X11/Wayland, and Herdr display preflight for semantic frontend E2E testing. |
 | `thai-editor.ts` | Route `/thai` requests into the contextual Thai editing and calibration workflow. |
 
 ## Install
@@ -93,7 +93,7 @@ Use the Playwright skill to test the frontend E2E at http://localhost:3000.
 Use headed mode so I can watch.
 ```
 
-Headless mode is the default. The extension exposes bounded browser verification and automatic first-use installation, navigation, accessibility snapshot, semantic click/fill, keyboard, wait, screenshot, console, and close tools. It uses an isolated ephemeral browser context, rejects non-HTTP(S) navigation, does not expose unrestricted page evaluation, and closes the browser at session shutdown.
+Headless mode is the default. Before headed runs, the skill checks local, SSH, X11/Wayland, and Herdr-managed display state and refuses to silently downgrade. The extension exposes bounded display/browser verification and automatic first-use installation, navigation, accessibility snapshot, semantic click/fill, keyboard, wait, screenshot, console, and close tools. It uses an isolated ephemeral browser context, rejects non-HTTP(S) navigation, does not expose unrestricted page evaluation, and closes the browser at session shutdown.
 
 ### Shared checkout for development or OMP
 
