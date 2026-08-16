@@ -5,7 +5,7 @@ Oh My Pi (OMP), and other compatible coding-agent runtimes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Sixteen skills spanning research and authoring, code review, and infrastructure operations —
+Seventeen skills spanning research and authoring, code review, frontend testing, and infrastructure operations —
 each written around an explicit permission boundary rather than a hopeful prompt.
 
 ## Why these exist
@@ -44,7 +44,8 @@ isolated shells and explicitly forbid `env`, `printenv`, and command tracing.
 
 | Skill | Purpose |
 |---|---|
-| `codebase-integrity-review` | Run a dry-run, multi-reviewer audit of code changes and codebases for regressions, conflicts, duplication, SSOT violations, risky hardcoding, and oversized files; critique and revise the final report. |
+| `codebase-integrity-review` | Run an adaptive, dry-run audit of code changes and codebases for regressions, conflicts, duplication, SSOT violations, risky hardcoding, and responsibility overload. |
+| `playwright-e2e` | Test frontend user flows through isolated headed or headless Playwright Chromium using semantic locators, snapshots, screenshots, and console evidence. |
 | `academic-book-project` | Coordinate a persistent academic book workspace with minimal human approval by default and optional stage gates. |
 | `academic-literature-discovery` | Run reproducible multi-provider scholarly discovery without confusing metadata with evidence. |
 | `academic-source-evidence` | Ingest private sources, maintain page-anchored evidence, and validate atomic claim grounding. |
@@ -61,6 +62,18 @@ isolated shells and explicitly forbid `env`, `printenv`, and command tracing.
 | `ssh-server-ops` | Inspect SSH hosts through local SSH aliases. |
 | `ugreen-nas-ops` | Inspect and safely operate a configured UGREEN NAS. |
 
+## Included Pi extensions
+
+| Extension | Purpose |
+|---|---|
+| `academic-book-studio.ts` | Provide bounded academic-book commands and tools backed by the deterministic book workflow. |
+| `herdr-doctor.ts` | Audit Herdr and offer confirmation-gated setup and repair actions. |
+| `herdr-tab-namer.ts` | Name Herdr tabs from substantial top-level tasks without exposing likely secrets. |
+| `herdr-tailnet.ts` | Audit configured Herdr hosts through control-plane-verified Tailnet routes. |
+| `myskill.ts` | Inspect and safely synchronize the canonical shared skill checkout. |
+| `playwright.ts` | Provide isolated headed/headless Chromium tools for semantic frontend E2E testing. |
+| `thai-editor.ts` | Route `/thai` requests into the contextual Thai editing and calibration workflow. |
+
 ## Install
 
 ### Pi — official package flow
@@ -70,6 +83,22 @@ pi install git:github.com/jakkzz/agent-skills
 ```
 
 This loads the declared skills and Pi extensions globally. Run `/reload` in an existing Pi session.
+
+The Playwright extension requires a one-time Chromium download after installation:
+
+```bash
+cd ~/.pi/agent/git/github.com/jakkzz/agent-skills
+npx playwright install chromium
+```
+
+Then ask Pi naturally:
+
+```text
+Use the Playwright skill to test the frontend E2E at http://localhost:3000.
+Use headed mode so I can watch.
+```
+
+Headless mode is the default. The extension exposes bounded navigation, accessibility snapshot, semantic click/fill, keyboard, wait, screenshot, console, and close tools. It uses an isolated ephemeral browser context, rejects non-HTTP(S) navigation, does not expose unrestricted page evaluation, and closes the browser at session shutdown.
 
 ### Shared checkout for development or OMP
 

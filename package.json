@@ -1,6 +1,6 @@
 {
   "name": "agent-skills",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "type": "module",
   "description": "Portable, safety-first Agent Skills for Claude Code, Pi, OMP, and compatible coding-agent runtimes.",
   "keywords": [
@@ -13,7 +13,10 @@
     "devops"
   ],
   "scripts": {
-    "test": "bash tests/myskill-update.sh && node tests/myskill-extension.mjs && node tests/academic-book-studio.mjs && node tests/thai-editor.mjs && node --experimental-strip-types --test tests/herdr-doctor-*.test.ts"
+    "test": "bash tests/myskill-update.sh && node tests/myskill-extension.mjs && node tests/academic-book-studio.mjs && node tests/thai-editor.mjs && node tests/playwright-extension.mjs && node --experimental-strip-types --test tests/herdr-doctor-*.test.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
   },
   "pi": {
     "extensions": [
