@@ -3,11 +3,19 @@ import { truncateHead } from "@earendil-works/pi-coding-agent";
 import { StringEnum } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { chromium, type Browser, type BrowserContext, type Locator, type Page } from "playwright";
+import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
+const require = createRequire(import.meta.url);
+const PLAYWRIGHT_MAIN = require.resolve("playwright");
+const PLAYWRIGHT_CLI = join(dirname(PLAYWRIGHT_MAIN), "cli.js");
+const execFileAsync = promisify(execFile);
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_TIMEOUT = 15_000;
 const MAX_CONSOLE_ENTRIES = 200;
@@ -35,6 +43,25 @@ const locatorFields = {
 
 function checkCancelled(signal?: AbortSignal): void {
   if (signal?.aborted) throw new Error("Browser operation cancelled");
+}
+
+async function ensureChromiumInstalled(signal?: AbortSignal, onProgress?: (message: string) => void): Promise<boolean> {
+  if (existsSync(chromium.executablePath())) return false;
+  onProgress?.("Chromium is missing; installing the Playwright Chromium bundle (one-time download)...");
+  try {
+    await execFileAsync(process.execPath, [PLAYWRIGHT_CLI, "install", "chromium"], {
+      cwd: PACKAGE_ROOT,
+      signal,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+  } catch (error) {
+    const stderr = typeof error === "object" && error && "stderr" in error ? String(error.stderr).trim() : "";
+    throw new Error(`Automatic Playwright Chromium installation failed.${stderr ? `\n${stderr.slice(-4000)}` : ""}`);
+  }
+  if (!existsSync(chromium.executablePath())) {
+    throw new Error("Playwright reported a successful install, but the Chromium executable is still missing.");
+  }
+  return true;
 }
 
 function validateUrl(raw: string): URL {
@@ -78,18 +105,11 @@ class BrowserManager {
     return next;
   }
 
-  async open(mode: Mode): Promise<Page> {
-    if (this.page && this.mode === mode && !this.page.isClosed()) return this.page;
+  async open(mode: Mode, signal?: AbortSignal, onProgress?: (message: string) => void): Promise<{ page: Page; installed: boolean }> {
+    if (this.page && this.mode === mode && !this.page.isClosed()) return { page: this.page, installed: false };
     await this.close();
-    try {
-      this.browser = await chromium.launch({ headless: mode === "headless" });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (/executable doesn't exist|browser.*not found/i.test(message)) {
-        throw new Error(`${message}\nInstall Chromium with: cd ${JSON.stringify(PACKAGE_ROOT)} && npx playwright install chromium`);
-      }
-      throw error;
-    }
+    const installed = await ensureChromiumInstalled(signal, onProgress);
+    this.browser = await chromium.launch({ headless: mode === "headless" });
     this.context = await this.browser.newContext({
       viewport: { width: 1440, height: 1000 },
       ignoreHTTPSErrors: false,
@@ -114,7 +134,7 @@ class BrowserManager {
       this.consoleEntries.push({ type: "pageerror", text: error.message, timestamp: new Date().toISOString() });
       if (this.consoleEntries.length > MAX_CONSOLE_ENTRIES) this.consoleEntries.shift();
     });
-    return this.page;
+    return { page: this.page, installed };
   }
 
   requirePage(): Page {
@@ -179,17 +199,19 @@ export default function playwrightExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "browser_open",
     label: "Open Browser",
-    description: "Open an isolated Chromium session in headless or headed mode. Relaunches when the requested mode changes.",
+    description: "Open an isolated Chromium session in headless or headed mode. Verifies the browser executable and automatically installs Playwright Chromium on first use when missing. Relaunches when the requested mode changes.",
     promptSnippet: "Open an isolated headed or headless Playwright Chromium session",
     promptGuidelines: guidelines,
     parameters: Type.Object({
       mode: StringEnum(["headless", "headed"] as const),
       url: Type.Optional(Type.String({ description: "Optional initial HTTP(S) URL." })),
     }),
-    async execute(_id, params, signal) {
+    async execute(_id, params, signal, onUpdate) {
       return manager.run(async () => {
         checkCancelled(signal);
-        const page = await manager.open(params.mode);
+        const { page, installed } = await manager.open(params.mode, signal, (message) => {
+          onUpdate?.({ content: [{ type: "text", text: message }], details: { installing: true } });
+        });
         let status: number | undefined;
         if (params.url) {
           validateUrl(params.url);
@@ -197,8 +219,8 @@ export default function playwrightExtension(pi: ExtensionAPI) {
           status = response?.status();
         }
         checkCancelled(signal);
-        return textResult(`Browser opened (${params.mode})\nURL: ${page.url()}\nTitle: ${await page.title()}${status ? `\nHTTP: ${status}` : ""}`, {
-          ...manager.status(), status,
+        return textResult(`Browser opened (${params.mode})${installed ? "\nPlaywright Chromium was installed automatically." : ""}\nURL: ${page.url()}\nTitle: ${await page.title()}${status ? `\nHTTP: ${status}` : ""}`, {
+          ...manager.status(), status, installed,
         });
       });
     },

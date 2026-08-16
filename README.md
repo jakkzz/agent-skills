@@ -84,21 +84,16 @@ pi install git:github.com/jakkzz/agent-skills
 
 This loads the declared skills and Pi extensions globally. Run `/reload` in an existing Pi session.
 
-The Playwright extension requires a one-time Chromium download after installation:
+The Playwright extension verifies Chromium on `browser_open` and automatically downloads the Playwright Chromium bundle when it is missing. This is a one-time download; installation progress is shown in the tool result. If automatic installation fails, run the reported fallback command from the installed package directory.
 
-```bash
-cd ~/.pi/agent/git/github.com/jakkzz/agent-skills
-npx playwright install chromium
-```
-
-Then ask Pi naturally:
+Ask Pi naturally:
 
 ```text
 Use the Playwright skill to test the frontend E2E at http://localhost:3000.
 Use headed mode so I can watch.
 ```
 
-Headless mode is the default. The extension exposes bounded navigation, accessibility snapshot, semantic click/fill, keyboard, wait, screenshot, console, and close tools. It uses an isolated ephemeral browser context, rejects non-HTTP(S) navigation, does not expose unrestricted page evaluation, and closes the browser at session shutdown.
+Headless mode is the default. The extension exposes bounded browser verification and automatic first-use installation, navigation, accessibility snapshot, semantic click/fill, keyboard, wait, screenshot, console, and close tools. It uses an isolated ephemeral browser context, rejects non-HTTP(S) navigation, does not expose unrestricted page evaluation, and closes the browser at session shutdown.
 
 ### Shared checkout for development or OMP
 
